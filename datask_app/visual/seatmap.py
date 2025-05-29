@@ -27,12 +27,12 @@ def get_used_labels(engine) -> list[str]:
 
 def group_labels(labels: list[str], columns: int = 4) -> list[list[str]]:
     """4列ごとに分割（2次元リストに変換）"""
-    return [labels[i:i+columns] for i in range(0, len(labels), columns)]
+    return [labels[i:i + columns] for i in range(0, len(labels), columns)]
 
 def draw_auto_seat_map(labels: list[str], used: list[str], columns: int = 4):
-    """動的なレイアウトで図を描画"""
+    """固定列でラベル順に並べて座席を描画"""
     layout = group_labels(labels, columns)
-    fig, ax = plt.subplots(figsize=(columns + 2, len(layout)))
+    fig, ax = plt.subplots(figsize=(columns + 1, len(layout)))
 
     for y, row in enumerate(layout):
         for x, label in enumerate(row):
