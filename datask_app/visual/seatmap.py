@@ -37,7 +37,7 @@ def draw_auto_seat_map(labels: list[str], used: list[str], columns: int = 4):
     for y, row in enumerate(layout):
         for x, label in enumerate(row):
             color = "red" if label in used else "green"
-            circle = plt.Circle((x, -y), 0.4, color=color, ec="black")
+            circle = plt.Circle((x, -y), 0.3, color=color, ec="black")
             ax.add_patch(circle)
             ax.text(x, -y, label, ha="center", va="center", color="white", fontsize=9)
 
