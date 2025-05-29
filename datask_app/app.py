@@ -8,11 +8,13 @@
 # - テーブルのデータ表示
 # - 日本語質問からSQL文の生成（Azure OpenAI）
 # - 生成されたSQL文の実行と結果表示
+# - 座席マップの表示（Label順 × 4列）
 # =============================================================================
+
 import streamlit as st
-from visual.seatmap import get_seat_labels, get_used_labels, draw_auto_seat_map
-from core.db import list_tables, load_table, run_query
+from core.db import list_tables, load_table, run_query, engine
 from core.openai_sql import generate_sql
+from visual.seatmap import get_seat_labels, get_used_labels, draw_auto_seat_map
 
 st.set_page_config(page_title="Seat DB Viewer", page_icon="◆", layout="centered")
 st.title("◆ Datask – Seat DB Viewer（NL→SQL）")
@@ -39,15 +41,7 @@ with st.expander("自然言語 ➜ SQL 生成・実行", expanded=True):
         if sql and sql.strip().lower().startswith("select"):
             st.dataframe(run_query(sql), use_container_width=True)
 
-# 座席マップ表示（円表示）
-from core.db import engine   # 既に定義済み
-from visual.seatmap import get_used_seats, draw_seat_map
-
-st.subheader("空席マップ表示")
-if st.button("空席マップを表示"):
-    used_labels = get_used_seats(engine)
-    draw_seat_map(used_labels)
-
+# 座席マップ表示（4列固定）
 st.subheader("座席マップの表示（4列固定）")
 if st.button("座席マップを表示"):
     all_labels = get_seat_labels(engine)
