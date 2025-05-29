@@ -57,7 +57,9 @@ if st.button("利用回数グラフを表示"):
 
 from testdata.seatlog_dummy import create_test_logs
 
+"""
 with st.expander("※初期テストデータ登録", expanded=False):
     if st.button("SeatLog ダミーデータを登録"):
         create_test_logs()
         st.success("ダミーデータを登録しました")
+"""
