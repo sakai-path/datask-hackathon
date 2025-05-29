@@ -1,8 +1,7 @@
 # =============================================================================
-# seatmap.py - 座席マップ（円で空席/使用中を表示）
+# seatmap.py - Label順に座席を4列ごとに並べて描画
 # -----------------------------------------------------------------------------
-# このモジュールでは、固定レイアウトの座席一覧を丸で表示します。
-# 使用中の席は赤、空席は緑で描画されます。
+# Seat.Label の順序で座席を4列ずつ配置し、使用中の席を赤、空席を緑で描画。
 # =============================================================================
 
 import matplotlib.pyplot as plt
@@ -10,37 +9,40 @@ import pandas as pd
 import sqlalchemy as sa
 import streamlit as st
 
-# 固定レイアウト（必要に応じて並び変更）
-SEAT_LAYOUT = [
-    ["A-01", "A-02", "A-03", "A-04", "A-05"],
-    ["A-06", "A-07", "A-08", "A-09", "A-10"]
-]
+def get_seat_labels(engine) -> list[str]:
+    """すべての Seat.Label を昇順に取得"""
+    sql = "SELECT Label FROM Seat ORDER BY Label"
+    df = pd.read_sql(sa.text(sql), engine)
+    return df["Label"].tolist()
 
-def get_used_seats(engine) -> list[str]:
-    """現在使用中の席のLabelを取得"""
+def get_used_labels(engine) -> list[str]:
+    """現在使用中（CheckOut が NULL）の Seat.Label を取得"""
     sql = """
-    SELECT DISTINCT Seat.Label
-    FROM SeatLog
-    JOIN Seat ON Seat.SeatId = SeatLog.SeatId
-    WHERE CheckIn <= GETDATE() AND CheckOut IS NULL
+    SELECT S.Label FROM SeatLog L
+    JOIN Seat S ON S.SeatId = L.SeatId
+    WHERE L.CheckIn <= GETDATE() AND L.CheckOut IS NULL
     """
     df = pd.read_sql(sa.text(sql), engine)
     return df["Label"].tolist()
 
-def draw_seat_map(used_labels: list[str]):
-    """固定レイアウトに沿って座席を円で描画"""
-    fig, ax = plt.subplots(figsize=(6, 3))
+def group_labels(labels: list[str], columns: int = 4) -> list[list[str]]:
+    """4列ごとに分割（2次元リストに変換）"""
+    return [labels[i:i+columns] for i in range(0, len(labels), columns)]
 
-    for y, row in enumerate(SEAT_LAYOUT):
+def draw_auto_seat_map(labels: list[str], used: list[str], columns: int = 4):
+    """動的なレイアウトで図を描画"""
+    layout = group_labels(labels, columns)
+    fig, ax = plt.subplots(figsize=(columns + 2, len(layout)))
+
+    for y, row in enumerate(layout):
         for x, label in enumerate(row):
-            is_used = label in used_labels
-            color = "red" if is_used else "green"
+            color = "red" if label in used else "green"
             circle = plt.Circle((x, -y), 0.4, color=color, ec="black")
             ax.add_patch(circle)
             ax.text(x, -y, label, ha="center", va="center", color="white", fontsize=9)
 
-    ax.set_xlim(-0.5, len(SEAT_LAYOUT[0]))
-    ax.set_ylim(-len(SEAT_LAYOUT), 0.5)
+    ax.set_xlim(-0.5, columns)
+    ax.set_ylim(-len(layout), 0.5)
     ax.set_aspect("equal")
     ax.axis("off")
     st.pyplot(fig)
