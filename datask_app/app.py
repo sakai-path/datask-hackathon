@@ -10,6 +10,7 @@
 # - 生成されたSQL文の実行と結果表示
 # =============================================================================
 import streamlit as st
+from visual.seatmap import get_seat_labels, get_used_labels, draw_auto_seat_map
 from core.db import list_tables, load_table, run_query
 from core.openai_sql import generate_sql
 
@@ -46,3 +47,9 @@ st.subheader("空席マップ表示")
 if st.button("空席マップを表示"):
     used_labels = get_used_seats(engine)
     draw_seat_map(used_labels)
+
+st.subheader("座席マップの表示（4列固定）")
+if st.button("座席マップを表示"):
+    all_labels = get_seat_labels(engine)
+    used_labels = get_used_labels(engine)
+    draw_auto_seat_map(all_labels, used_labels, columns=4)
