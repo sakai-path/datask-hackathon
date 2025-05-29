@@ -37,3 +37,12 @@ with st.expander("自然言語 ➜ SQL 生成・実行", expanded=True):
         sql = st.session_state.get("sql")
         if sql and sql.strip().lower().startswith("select"):
             st.dataframe(run_query(sql), use_container_width=True)
+
+# 座席マップ表示（円表示）
+from core.db import engine   # 既に定義済み
+from visual.seatmap import get_used_seats, draw_seat_map
+
+st.subheader("空席マップ表示")
+if st.button("空席マップを表示"):
+    used_labels = get_used_seats(engine)
+    draw_seat_map(used_labels)
