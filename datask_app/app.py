@@ -47,3 +47,10 @@ if st.button("座席マップを表示"):
     all_labels = get_seat_labels(engine)
     used_labels = get_used_labels(engine)
     draw_auto_seat_map(all_labels, used_labels, columns=5)
+
+from visual.charts import get_seat_usage_counts, draw_usage_bar_chart
+
+st.subheader("座席ごとの利用回数（棒グラフ）")
+if st.button("利用回数グラフを表示"):
+    df = get_seat_usage_counts(engine)
+    draw_usage_bar_chart(df)
