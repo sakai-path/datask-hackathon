@@ -17,7 +17,7 @@ from core.openai_sql import generate_sql
 from visual.seatmap import get_seat_labels, get_used_labels, draw_auto_seat_map
 
 st.set_page_config(page_title="Seat DB Viewer", page_icon="◆", layout="centered")
-st.title("◆ Datask – Seat DB Viewer（NL→SQL）")
+st.title("おしゃべりデータ – フリー席検索")
 
 # テーブル表示
 with st.expander("テーブル表示", expanded=True):
