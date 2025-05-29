@@ -25,6 +25,7 @@ client = AzureOpenAI(
 deployment = secret("AZURE_OPENAI_DEPLOYMENT")
 
 def generate_sql(nl: str) -> str:
+    """日本語の質問を Function Calling により SQL に変換する"""
     system = (
         "You are an assistant that converts Japanese questions into a single "
         "read-only T-SQL SELECT statement for Azure SQL. "
@@ -34,7 +35,7 @@ def generate_sql(nl: str) -> str:
         {"role": "system", "content": system + SCHEMA_HINT},
         {"role": "user", "content": nl},
     ]
-    functions = [{
+    funcs = [{
         "name": "to_sql",
         "description": "Generate T-SQL SELECT",
         "parameters": {
@@ -43,11 +44,16 @@ def generate_sql(nl: str) -> str:
             "required": ["sql"],
         },
     }]
-    rsp = client.chat.completions.create(
-        model=deployment,
-        messages=messages,
-        functions=functions,
-        function_call={"name": "to_sql"},
-        temperature=0,
-    )
-    return json.loads(rsp.choices[0].message.function_call.arguments)["sql"]
+    try:
+        rsp = client.chat.completions.create(
+            model=deployment,
+            messages=messages,
+            functions=funcs,
+            function_call="auto",  # ← 必ず "auto"
+            temperature=0,
+        )
+        args = json.loads(rsp.choices[0].message.function_call.arguments)
+        return args["sql"]
+    except Exception:
+        # エラー時はプレーンなメッセージを返す（SQLではなく）
+        return "-- ちょっと意味がわかりませんでした。"
