@@ -46,4 +46,4 @@ st.subheader("座席マップの表示（4列固定）")
 if st.button("座席マップを表示"):
     all_labels = get_seat_labels(engine)
     used_labels = get_used_labels(engine)
-    draw_auto_seat_map(all_labels, used_labels, columns=4)
+    draw_auto_seat_map(all_labels, used_labels, columns=5)
