@@ -15,6 +15,7 @@ import streamlit as st
 from core.db import list_tables, load_table, run_query, engine
 from core.openai_sql import generate_sql
 from visual.seatmap import get_seat_labels, get_used_labels, draw_auto_seat_map
+from core.config import check_ai_search_connection
 
 st.set_page_config(page_title="Seat DB Viewer", page_icon="◆", layout="centered")
 st.title("おしゃべりデータ – フリー席検索")
@@ -60,3 +61,10 @@ with st.expander("※初期テストデータ登録", expanded=False):
     if st.button("SeatLog ダミーデータを登録"):
         create_test_logs()
         st.success("ダミーデータを登録しました")
+
+with st.sidebar:
+    st.subheader("接続状況")
+    if check_ai_search_connection():
+        st.success("✅ Azure AI Search 接続 OK")
+    else:
+        st.error("❌ Azure AI Search 未接続")
