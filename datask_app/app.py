@@ -1,67 +1,68 @@
-
 # =============================================================================
-# Datask - シンプルQA専用アプリ画面
+# app.py - Datask スタイリッシュ質問 UI メイン
 # -----------------------------------------------------------------------------
-# 質問入力欄 → 自動でSQL生成 → 実行し回答を表示（SQLは任意表示）
+# - 自然言語の質問を入力すると、自動でSQL生成・実行・表示
+# - 回答は表形式またはグラフ表示（Function Calling による指示）
+# - 実行されたSQLは「▼ SQLを表示」で確認可能
 # =============================================================================
 
 import streamlit as st
 from core.db import run_query, engine
 from core.openai_sql import generate_sql
-from visual.charts import show_usage_chart_by_emp
+from visual.charts import (
+    get_monthly_usage_by_employee,
+    draw_monthly_usage_chart
+)
 
-st.set_page_config(page_title="おしゃべりデータ - QA", page_icon="🤖", layout="centered")
+# -------------------------------
+# ページ設定 & スタイル
+# -------------------------------
+st.set_page_config(page_title="おしゃべりデータ", page_icon="🔍", layout="centered")
 
 st.markdown("""
-<style>
-    .main {
-        background-color: #f9f9f9;
+    <style>
+    .big-input > div > input {
+        font-size: 1.1rem !important;
+        padding: 0.75em;
+        border-radius: 0.5em;
+        background-color: #f8f9fa;
     }
-    input {
-        background-color: #ffffff !important;
-        border-radius: 10px !important;
-        padding: 10px;
-        border: 1px solid #ddd !important;
-    }
-    .stTextInput>div>div>input {
-        color: #333 !important;
-    }
-    .stButton>button {
-        border-radius: 10px;
-        padding: 0.5em 1.5em;
-        background-color: #4a90e2;
-        color: white;
-        border: none;
-    }
-    .stButton>button:hover {
-        background-color: #3c7dc3;
-    }
-</style>
+    </style>
 """, unsafe_allow_html=True)
 
-st.title("🔍 質問を入力してください")
+# -------------------------------
+# タイトル・入力エリア
+# -------------------------------
+st.markdown("## 🔍 質問を入力してください")
+user_input = st.text_input(
+    "例: “E10001 の利用履歴をグラフで見せて”",
+    placeholder="自然な言葉で質問できます",
+    label_visibility="collapsed",
+    key="query_input",
+    help="座席や利用履歴など、自由に質問できます",
+)
 
-query = st.text_input("例: “現在空いている席は？”", key="query_input")
+# -------------------------------
+# SQL生成 & 実行
+# -------------------------------
+if user_input.strip():
+    sql = generate_sql(user_input)
+    st.session_state["last_sql"] = sql
 
-if query:
-    sql = generate_sql(query)
+    # ▼ Function Calling 成果物としてのプレースホルダ判定
     if sql.startswith("#CHART:"):
-        emp_code = sql.split(":", 1)[1].strip().rstrip(":")
-        if emp_code:
-            show_usage_chart_by_emp(emp_code, engine)
-        else:
-            st.warning("社員コードが見つかりませんでした。")
-    elif not sql.strip().lower().startswith("select"):
-        st.warning("ちょっと意味がわかりません")
+        emp_code = sql.removeprefix("#CHART:").strip()
+        df = get_monthly_usage_by_employee(engine, emp_code)
+        draw_monthly_usage_chart(df, name=emp_code)
+    elif sql.lower().startswith("select"):
+        df = run_query(sql)
+        st.dataframe(df, use_container_width=True)
     else:
-        try:
-            df = run_query(sql)
-            if df.empty:
-                st.info("該当データは見つかりませんでした。")
-            else:
-                st.dataframe(df, use_container_width=True)
+        st.warning("ちょっと意味がわかりませんでした。")
 
-            with st.expander("📄 実行されたSQLを表示"):
-                st.code(sql, language="sql")
-        except Exception as e:
-            st.error(f"SQL実行エラー: {e}")
+# -------------------------------
+# SQL確認（折りたたみ）
+# -------------------------------
+if "last_sql" in st.session_state:
+    with st.expander("▼ SQLを表示"):
+        st.code(st.session_state["last_sql"], language="sql")
