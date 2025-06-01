@@ -108,3 +108,22 @@ if st.button("FAQデータ登録"):
         st.success(msg) if success else st.error(msg)
 
 
+from visual.charts import show_usage_chart_by_emp
+from core.openai_sql import generate_sql, is_chart_request
+
+# ...
+if col1.button("SQL 生成"):
+    if not query.strip():
+        st.warning("質問を入力してください")
+    else:
+        # ★ グラフ表示の特殊ケースを先に判定
+        emp = is_chart_request(query)
+        if emp:
+            show_usage_chart_by_emp(emp, engine)
+        else:
+            try:
+                sql = generate_sql(query)
+                st.session_state["sql"] = sql
+                st.code(sql, language="sql")
+            except Exception:
+                st.warning("ちょっと意味がわかりません")
