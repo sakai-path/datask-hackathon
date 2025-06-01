@@ -68,3 +68,16 @@ with st.sidebar:
         st.success("✅ Azure AI Search 接続 OK")
     else:
         st.error("❌ Azure AI Search 未接続")
+
+# app.py のどこか末尾などに一時セクションとして追加してください
+
+from tools.upload_faq import upload_faq
+
+with st.expander("※FAQデータをインデックスに登録（初回のみ）", expanded=False):
+    if st.button("FAQデータ登録（Azure AI Search）"):
+        with st.spinner("アップロード中..."):
+            success, msg = upload_faq()
+            if success:
+                st.success(msg)
+            else:
+                st.error(msg)
