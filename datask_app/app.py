@@ -9,6 +9,9 @@
 import streamlit as st
 from core.db import run_query, engine
 from core.openai_sql import generate_sql
+from visual.charts import get_monthly_usage_by_employee, draw_monthly_usage_chart
+from core.employee import get_empcode_by_name
+
 from visual.charts import (
     get_monthly_usage_by_employee,
     draw_monthly_usage_chart
@@ -60,9 +63,30 @@ if user_input.strip():
     else:
         st.warning("ちょっと意味がわかりませんでした。")
 
+# ─────────────────────────────────────────────
+# 氏名から社員の月別利用回数グラフを表示
+# ─────────────────────────────────────────────
+st.markdown("---")
+st.markdown("### 氏名から社員の月別利用回数を表示")
+
+name_input = st.text_input("社員名を入力（例：田中）")
+
+if st.button("利用回数グラフを表示"):
+    if not name_input.strip():
+        st.warning("氏名を入力してください。")
+    else:
+        emp_code = get_empcode_by_name(name_input)
+        if emp_code:
+            df = get_monthly_usage_by_employee(engine, emp_code)
+            draw_monthly_usage_chart(df, name_input)
+        else:
+            st.error("該当する社員が見つかりませんでした。")
+
 # -------------------------------
 # SQL確認（折りたたみ）
 # -------------------------------
 if "last_sql" in st.session_state:
     with st.expander("▼ SQLを表示"):
         st.code(st.session_state["last_sql"], language="sql")
+
+
