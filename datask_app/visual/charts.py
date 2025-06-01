@@ -1,8 +1,9 @@
 # =============================================================================
-# charts.py - 座席利用状況の棒グラフ表示
+# charts.py - 座席利用状況 & 社員の月別利用回数の棒グラフ表示
 # -----------------------------------------------------------------------------
-# このモジュールでは、SeatLogを集計し、座席ごとの利用回数を
-# matplotlib で棒グラフとして表示する機能を提供します。
+# このモジュールでは、SeatLogを集計し、以下を matplotlib で描画：
+# - 座席ごとの利用回数
+# - 社員ごとの月別利用回数
 # =============================================================================
 
 import pandas as pd
@@ -10,6 +11,9 @@ import sqlalchemy as sa
 import matplotlib.pyplot as plt
 import streamlit as st
 
+# -------------------------------
+# 1. 座席ごとの利用回数
+# -------------------------------
 def get_seat_usage_counts(engine) -> pd.DataFrame:
     """Seatごとの利用回数を取得"""
     sql = """
@@ -31,29 +35,34 @@ def draw_usage_bar_chart(df: pd.DataFrame):
     ax.set_xticklabels(df["Label"], rotation=45, ha="right")
     st.pyplot(fig)
 
-def show_usage_chart_by_emp(emp_code: str, engine: sa.Engine):
-    """社員別の月別利用回数を棒グラフで表示"""
-    query = """
-        SELECT
-            EmpCode,
-            FORMAT(CheckIn, 'yyyy-MM') AS Month,
-            COUNT(*) AS Count
-        FROM SeatLog
-        WHERE EmpCode = :emp
-        GROUP BY EmpCode, FORMAT(CheckIn, 'yyyy-MM')
-        ORDER BY Month
+# -------------------------------
+# 2. 社員ごとの月別利用回数
+# -------------------------------
+def get_monthly_usage_by_employee(engine, emp_code: str) -> pd.DataFrame:
+    """指定された社員の月別利用回数を取得"""
+    sql = """
+    SELECT 
+        FORMAT(CheckIn, 'yyyy-MM') AS Month,
+        COUNT(*) AS UsageCount
+    FROM SeatLog
+    WHERE EmpCode = :emp
+    GROUP BY FORMAT(CheckIn, 'yyyy-MM')
+    ORDER BY Month
     """
-    df = pd.read_sql(sa.text(query), engine, params={"emp": emp_code})
+    with engine.begin() as conn:
+        df = pd.read_sql(sa.text(sql), conn, params={"emp": emp_code})
+    return df
 
+def draw_monthly_usage_chart(df: pd.DataFrame, name: str = ""):
+    """月別利用回数を棒グラフで描画"""
     if df.empty:
-        st.warning(f"{emp_code} の利用履歴が見つかりませんでした。")
+        st.warning("データがありません。")
         return
-
-    plt.figure(figsize=(6, 4))
-    plt.bar(df["Month"], df["Count"], color="green", edgecolor="black")
-    plt.title(f"{emp_code} の月別利用回数")
-    plt.xlabel("月")
-    plt.ylabel("回数")
-    plt.xticks(rotation=45)
-    plt.tight_layout()
-    st.pyplot(plt)
+    fig, ax = plt.subplots(figsize=(8, 4))
+    ax.bar(df["Month"], df["UsageCount"], color="salmon", edgecolor="black")
+    ax.set_title(f"{name} の月別利用回数" if name else "月別利用回数")
+    ax.set_xlabel("月")
+    ax.set_ylabel("利用回数")
+    ax.set_xticks(range(len(df["Month"])))
+    ax.set_xticklabels(df["Month"], rotation=45, ha="right")
+    st.pyplot(fig)
