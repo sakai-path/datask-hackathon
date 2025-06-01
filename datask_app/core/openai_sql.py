@@ -1,18 +1,19 @@
 # =============================================================================
-# openai_sql.py - 自然言語からSQL文を生成（Azure OpenAI利用）
+# openai_sql.py - 自然言語からSQL文やグラフ表示指示を生成（Azure OpenAI利用）
 # -----------------------------------------------------------------------------
-# ユーザーの日本語の質問文を受け取り、Azure OpenAI の function calling 機能を使って
-# 読み取り専用の T-SQL（SELECT 文）またはグラフ表示用の関数呼び出しに変換します。
+# ユーザーの日本語の質問文を受け取り、Azure OpenAI の Function Calling 機能を使って
+# 以下のいずれかを実現します：
+# - 読み取り専用の T-SQL（SELECT 文）を生成
+# - 社員の利用履歴グラフ表示を指示する関数呼び出し
 #
 # 使用例：
-#   sql = generate_sql("昨日空いていた席は？")
-#   （または）
-#   sql = generate_sql("田中さんの月別利用グラフを見せて")
+#   result = generate_semantic_sql("昨日空いていた席は？")
+#   result = generate_semantic_sql("田中さんのグラフを見せて")
 #
-# 注意：
-# - SELECT 文のみを生成（INSERT/UPDATE/DELETEは禁止）
-# - モデルのデプロイ名は AZURE_OPENAI_DEPLOYMENT に設定されていること
-# - Function Calling 経由でグラフ表示関数を呼び出すこともあります
+# 戻り値は以下の形式：
+#   {"type": "sql", "sql": "SELECT ..."}
+#   {"type": "chart", "emp_code": "E10001", "name": "田中一郎"}
+#
 # =============================================================================
 
 import json
@@ -34,7 +35,7 @@ def get_functions():
     return [
         {
             "name": "to_sql",
-            "description": "Convert natural language to T-SQL SELECT",
+            "description": "自然言語から読み取り専用のT-SQL SELECT文を生成します。",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -45,7 +46,7 @@ def get_functions():
         },
         {
             "name": "show_emp_usage_chart",
-            "description": "特定の社員の月別利用グラフを表示する",
+            "description": "特定の社員の月別利用グラフを表示する指示を生成します。",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -64,13 +65,21 @@ def get_functions():
     ]
 
 
-def generate_sql(nl: str) -> str:
-    """日本語の質問を Function Calling により SQL または関数呼び出しに変換"""
+def generate_semantic_sql(nl: str) -> dict:
+    """
+    日本語の質問を Function Calling により SQL または グラフ表示指示に変換。
+
+    Returns:
+        dict:
+            - {"type": "sql", "sql": "..."}
+            - {"type": "chart", "emp_code": "...", "name": "..."}
+            - {"type": "error", "message": "..."} （失敗時）
+    """
     system = (
         "You are an assistant that converts Japanese questions into either:\n"
-        "- a single read-only T-SQL SELECT statement for Azure SQL\n"
-        "- OR call a function like 'show_emp_usage_chart' for graphs\n\n"
-        "Use ONLY the tables listed below. Never generate INSERT/UPDATE/DELETE.\n"
+        "- a read-only T-SQL SELECT statement for Azure SQL\n"
+        "- OR a function call to 'show_emp_usage_chart' for employee usage graphs.\n\n"
+        "Use ONLY the tables and fields listed below. Never generate INSERT/UPDATE/DELETE.\n"
     )
 
     messages = [
@@ -88,36 +97,24 @@ def generate_sql(nl: str) -> str:
         )
         message = rsp.choices[0].message
 
-        # Function Calling の場合（SQL or グラフ）
+        # Function Calling の応答処理
         if message.function_call:
             func_name = message.function_call.name
             args = json.loads(message.function_call.arguments)
 
             if func_name == "to_sql":
-                return args["sql"]
+                return {"type": "sql", "sql": args["sql"]}
 
             elif func_name == "show_emp_usage_chart":
-                # 特殊なトークンとして戻す（後段の処理側で判定）
-                emp_code = args.get("emp_code")
-                name = args.get("name", "")
-                return f"#CHART:{emp_code}:{name}"
+                return {
+                    "type": "chart",
+                    "emp_code": args.get("emp_code"),
+                    "name": args.get("name", "")
+                }
 
-        return "-- ちょっと意味がわかりませんでした。"
+        return {"type": "error", "message": "ちょっと意味がわかりませんでした。"}
 
-    except Exception:
-        return "-- ちょっと意味がわかりませんでした。"
+    except Exception as e:
+        return {"type": "error", "message": str(e)}
 
-def is_chart_request(nl: str) -> str | None:
-    """
-    特定の社員別グラフ表示を求める質問かどうかを判定
-    （例:「E10001 の利用履歴をグラフで見せて」など）
-
-    Returns:
-        対象の社員コードが含まれていればそのコードを返す。なければ None。
-    """
-    import re
-    m = re.search(r"(E\d{5})", nl)
-    if m and "グラフ" in nl or "傾向" in nl or "回数" in nl:
-        return m.group(1)
-    return None
 
