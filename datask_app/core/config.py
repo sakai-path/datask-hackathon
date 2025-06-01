@@ -36,3 +36,6 @@ def check_ai_search_connection() -> bool:
     except Exception as e:
         st.error(f"Azure AI Search 接続エラー: {e}")
         return False
+
+secret = get_secret
+
