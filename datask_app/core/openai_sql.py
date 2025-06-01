@@ -106,3 +106,18 @@ def generate_sql(nl: str) -> str:
 
     except Exception:
         return "-- ちょっと意味がわかりませんでした。"
+
+def is_chart_request(nl: str) -> str | None:
+    """
+    特定の社員別グラフ表示を求める質問かどうかを判定
+    （例:「E10001 の利用履歴をグラフで見せて」など）
+
+    Returns:
+        対象の社員コードが含まれていればそのコードを返す。なければ None。
+    """
+    import re
+    m = re.search(r"(E\d{5})", nl)
+    if m and "グラフ" in nl or "傾向" in nl or "回数" in nl:
+        return m.group(1)
+    return None
+
