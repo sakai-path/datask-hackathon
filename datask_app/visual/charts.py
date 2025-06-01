@@ -30,3 +30,30 @@ def draw_usage_bar_chart(df: pd.DataFrame):
     ax.set_ylabel("利用回数")
     ax.set_xticklabels(df["Label"], rotation=45, ha="right")
     st.pyplot(fig)
+
+def show_usage_chart_by_emp(emp_code: str, engine: sa.Engine):
+    """社員別の月別利用回数を棒グラフで表示"""
+    query = """
+        SELECT
+            EmpCode,
+            FORMAT(CheckIn, 'yyyy-MM') AS Month,
+            COUNT(*) AS Count
+        FROM SeatLog
+        WHERE EmpCode = :emp
+        GROUP BY EmpCode, FORMAT(CheckIn, 'yyyy-MM')
+        ORDER BY Month
+    """
+    df = pd.read_sql(sa.text(query), engine, params={"emp": emp_code})
+
+    if df.empty:
+        st.warning(f"{emp_code} の利用履歴が見つかりませんでした。")
+        return
+
+    plt.figure(figsize=(6, 4))
+    plt.bar(df["Month"], df["Count"], color="green", edgecolor="black")
+    plt.title(f"{emp_code} の月別利用回数")
+    plt.xlabel("月")
+    plt.ylabel("回数")
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+    st.pyplot(plt)
