@@ -1,92 +1,76 @@
 # =============================================================================
-# app.py - Datask スタイリッシュ質問 UI メイン
+# app.py - おしゃべりデータ：自然言語からSQL→実行→結果を出し分け
 # -----------------------------------------------------------------------------
-# - 自然言語の質問を入力すると、自動でSQL生成・実行・表示
-# - 回答は表形式またはグラフ表示（Function Calling による指示）
-# - 実行されたSQLは「▼ SQLを表示」で確認可能
+# このアプリでは、自然言語の質問を入力するだけで、
+# - Azure OpenAI の Function Calling を使って SQL を生成
+# - 実行して表／文章／グラフなどを自動で表示
+# -----------------------------------------------------------------------------
+# 入力：質問文（例：「田中さんの利用状況は？」）
+# 出力：質問に応じた可視化（表、文章、グラフ）
 # =============================================================================
 
 import streamlit as st
 from core.db import run_query, engine
 from core.openai_sql import generate_sql
-from visual.charts import get_monthly_usage_by_employee, draw_monthly_usage_chart
-from core.employee import get_empcode_by_name
-
 from visual.charts import (
     get_monthly_usage_by_employee,
-    draw_monthly_usage_chart
+    draw_monthly_usage_chart,
+    get_seat_usage_counts,
+    draw_usage_bar_chart,
 )
 
-# -------------------------------
-# ページ設定 & スタイル
-# -------------------------------
-st.set_page_config(page_title="おしゃべりデータ", page_icon="🔍", layout="centered")
-
-st.markdown("""
-    <style>
-    .big-input > div > input {
-        font-size: 1.1rem !important;
-        padding: 0.75em;
-        border-radius: 0.5em;
-        background-color: #f8f9fa;
-    }
-    </style>
-""", unsafe_allow_html=True)
-
-# -------------------------------
-# タイトル・入力エリア
-# -------------------------------
-st.markdown("## 🔍 質問を入力してください")
-user_input = st.text_input(
-    "例: “E10001 の利用履歴をグラフで見せて”",
-    placeholder="自然な言葉で質問できます",
-    label_visibility="collapsed",
-    key="query_input",
-    help="座席や利用履歴など、自由に質問できます",
-)
-
-# -------------------------------
-# SQL生成 & 実行
-# -------------------------------
-if user_input.strip():
-    sql = generate_sql(user_input)
-    st.session_state["last_sql"] = sql
-
-    # ▼ Function Calling 成果物としてのプレースホルダ判定
-    if sql.startswith("#CHART:"):
-        emp_code = sql.removeprefix("#CHART:").strip()
-        df = get_monthly_usage_by_employee(engine, emp_code)
-        draw_monthly_usage_chart(df, name=emp_code)
-    elif sql.lower().startswith("select"):
-        df = run_query(sql)
-        st.dataframe(df, use_container_width=True)
-    else:
-        st.warning("ちょっと意味がわかりませんでした。")
+st.set_page_config(page_title="おしゃべりデータ", layout="centered")
+st.title("🧠 おしゃべりデータ")
 
 # ─────────────────────────────────────────────
-# 氏名から社員の月別利用回数グラフを表示
+# 入力欄：質問テキストを受け付ける（自然言語のみ）
 # ─────────────────────────────────────────────
-st.markdown("---")
-st.markdown("### 氏名から社員の月別利用回数を表示")
+st.markdown("#### 質問を入力してください（例：『田中さんの月別利用状況は？』など）")
 
-name_input = st.text_input("社員名を入力（例：田中）")
+query = st.text_input("例：「現在空いている席は？」", placeholder="ここに質問を入力...")
 
-if st.button("利用回数グラフを表示"):
-    if not name_input.strip():
-        st.warning("氏名を入力してください。")
+# SQL表示のトグル用
+show_sql = st.checkbox("生成されたSQLを表示", value=False)
+
+# ─────────────────────────────────────────────
+# 入力された質問があればSQL生成→実行
+# ─────────────────────────────────────────────
+if query:
+    with st.spinner("AIが質問を解析中..."):
+        sql = generate_sql(query)
+
+    if not sql or not sql.strip().lower().startswith("select"):
+        st.error("SQL生成に失敗しました")
     else:
-        emp_code = get_empcode_by_name(name_input)
-        if emp_code:
-            df = get_monthly_usage_by_employee(engine, emp_code)
-            draw_monthly_usage_chart(df, name_input)
-        else:
-            st.error("該当する社員が見つかりませんでした。")
+        if show_sql:
+            st.code(sql, language="sql")
 
-# -------------------------------
-# SQL確認（折りたたみ）
-# -------------------------------
-if "last_sql" in st.session_state:
-    with st.expander("▼ SQLを表示"):
-        st.code(st.session_state["last_sql"], language="sql")
+        try:
+            df = run_query(sql)
+        except Exception as e:
+            st.error(f"SQL実行エラー: {e}")
+            df = None
+
+        if df is not None:
+            # ─────────────────────────────────────
+            # 出し分け処理：データ内容に応じて表示形式を判断
+            # ─────────────────────────────────────
+
+            # 1. 氏名＋月＋利用回数 → グラフ
+            if set(df.columns) >= {"Month", "UsageCount"} and len(df) <= 24:
+                draw_monthly_usage_chart(df)
+
+            # 2. 席ラベル＋利用回数 → 座席集計グラフ
+            elif set(df.columns) >= {"Label", "UsageCount"} and len(df) <= 100:
+                draw_usage_bar_chart(df)
+
+            # 3. 結果行数が少ない → テーブルではなくテキスト的に出力
+            elif len(df) == 1 and df.shape[1] == 1:
+                st.success(f"回答：{df.iloc[0, 0]}")
+
+            # 4. 通常の表表示
+            else:
+                st.dataframe(df, use_container_width=True)
+
 
 
