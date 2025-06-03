@@ -70,3 +70,8 @@ def find_empcode_by_name(name: str) -> tuple[str, str] | None:
             if row:
                 return row[0], row[1]
     return None
+
+def load_table(tbl: str, limit: int = 100) -> pd.DataFrame:
+    with engine.connect() as c:
+        return pd.read_sql(sa.text(f"SELECT TOP {limit} * FROM {tbl}"), c)
+
