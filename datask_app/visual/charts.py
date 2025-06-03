@@ -10,6 +10,7 @@ import pandas as pd
 import sqlalchemy as sa
 import matplotlib.pyplot as plt
 import streamlit as st
+import platform
 
 # -------------------------------
 # 1. 座席ごとの利用回数
@@ -66,3 +67,13 @@ def draw_monthly_usage_chart(df: pd.DataFrame, name: str = ""):
     ax.set_xticks(range(len(df["Month"])))
     ax.set_xticklabels(df["Month"], rotation=45, ha="right")
     st.pyplot(fig)
+
+# ▼ OSごとに日本語フォントを設定
+if platform.system() == "Windows":
+    matplotlib.rc("font", family="Yu Gothic")
+elif platform.system() == "Darwin":  # macOS
+    matplotlib.rc("font", family="Hiragino Maru Gothic Pro")
+else:
+    matplotlib.rc("font", family="IPAPGothic")  # Linux向け (IPAフォントなど)
+
+matplotlib.rcParams["axes.unicode_minus"] = False  # マイナス記号対策
