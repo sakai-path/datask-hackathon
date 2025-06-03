@@ -1,26 +1,29 @@
 # =============================================================================
-# app.py - Datask Streamlit アプリ（自然言語から動的表示）
+# app.py - Datask Streamlit アプリ（自然言語から動的表示＋DBブラウズ）
 # -----------------------------------------------------------------------------
-# このアプリは、ユーザーの自然言語の質問から、Azure OpenAI を通じて
-# SQL 実行またはグラフ描画などを自動判定・表示します。
-# 質問入力欄は1つだけ。表示形式は AI が判断します。
+# 自然言語質問からSQLやグラフ出力、さらにサイドバーで任意テーブル閲覧とCSV出力が可能。
 # =============================================================================
 
 import streamlit as st
-from core.db import run_query, engine
+import pandas as pd
+from core.db import run_query, engine, load_table
 from core.openai_sql import generate_semantic_sql
 from visual.charts import get_monthly_usage_by_employee, draw_monthly_usage_chart
 
-# UIの設定
+# UI設定
 st.set_page_config(page_title="おしゃべりデータ", layout="centered")
 st.title("💬 おしゃべりデータ")
 
-# シンプルなテキスト入力欄（スタイル調整）
-query = st.text_input("知りたいことを聞いてください", placeholder="例：田中さんのグラフを見せて")
+st.markdown("### 質問を入力してください（例：『田中さんの月別利用状況は？』など）")
+st.caption("例：『現在空いている席は？』")
 
-# SQL 表示用の展開領域（後で中身を詰める）
+query = st.text_input("質問", placeholder="田中さんの利用状況をグラフで見せて")
+show_sql = st.checkbox("生成されたSQLを表示")
 sql_container = st.empty()
 
+# ─────────────────────────────────────
+# メイン：自然言語質問の処理（SQL実行 or グラフ描画）
+# ─────────────────────────────────────
 if query.strip():
     result = generate_semantic_sql(query)
 
@@ -28,8 +31,9 @@ if query.strip():
         try:
             df = run_query(result["sql"])
             st.dataframe(df, use_container_width=True)
-            with sql_container.expander("🔍 生成されたSQLを見る"):
-                st.code(result["sql"], language="sql")
+            if show_sql:
+                with sql_container.expander("🔍 生成されたSQL"):
+                    st.code(result["sql"], language="sql")
         except Exception as e:
             st.error(f"SQL実行エラー: {e}")
 
@@ -39,3 +43,22 @@ if query.strip():
 
     elif result["type"] == "error":
         st.warning(result["message"])
+
+# ─────────────────────────────────────
+# サイドバー：テーブル表示＆CSV出力（初期は折りたたみ）
+# ─────────────────────────────────────
+with st.sidebar.expander("📂 データベース参照（Seat / Employee / SeatLog）", expanded=False):
+    table = st.selectbox("表示するテーブルを選択", ["Seat", "Employee", "SeatLog"])
+    limit = st.slider("表示件数", 10, 500, 100, 10)
+
+    if st.button("読み込み"):
+        df = load_table(table, limit)
+        st.dataframe(df, use_container_width=True)
+
+        csv = df.to_csv(index=False).encode("utf-8-sig")
+        st.download_button(
+            label=f"{table} をCSVで保存",
+            data=csv,
+            file_name=f"{table}.csv",
+            mime="text/csv"
+        )
