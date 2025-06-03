@@ -1,17 +1,30 @@
 # =============================================================================
 # charts.py - 座席利用状況 & 社員の月別利用回数の棒グラフ表示
 # -----------------------------------------------------------------------------
-# このモジュールでは、SeatLogを集計し、以下を matplotlib で描画：
-# - 座席ごとの利用回数
-# - 社員ごとの月別利用回数
+# このモジュールでは、SeatLogを集計し、以下を matplotlib で描画します。
+# - 座席ごとの利用回数（draw_usage_bar_chart）
+# - 社員ごとの月別利用回数（draw_monthly_usage_chart）
+#
+# その他:
+# - OSに応じた日本語フォントの適用（文字化け対策）
 # =============================================================================
 
 import pandas as pd
 import sqlalchemy as sa
+import matplotlib  # ← フォント設定用に必要
 import matplotlib.pyplot as plt
 import streamlit as st
 import platform
-import matplotlib
+
+# ▼ OSごとに日本語フォントを設定（文字化け対策）
+if platform.system() == "Windows":
+    matplotlib.rc("font", family="Yu Gothic")
+elif platform.system() == "Darwin":
+    matplotlib.rc("font", family="Hiragino Maru Gothic Pro")
+else:
+    matplotlib.rc("font", family="IPAPGothic")  # Linux 向け
+
+matplotlib.rcParams["axes.unicode_minus"] = False  # マイナス記号の文字化け防止
 
 # -------------------------------
 # 1. 座席ごとの利用回数
@@ -68,13 +81,3 @@ def draw_monthly_usage_chart(df: pd.DataFrame, name: str = ""):
     ax.set_xticks(range(len(df["Month"])))
     ax.set_xticklabels(df["Month"], rotation=45, ha="right")
     st.pyplot(fig)
-
-# ▼ OSごとに日本語フォントを設定
-if platform.system() == "Windows":
-    matplotlib.rc("font", family="Yu Gothic")
-elif platform.system() == "Darwin":  # macOS
-    matplotlib.rc("font", family="Hiragino Maru Gothic Pro")
-else:
-    matplotlib.rc("font", family="IPAPGothic")  # Linux向け (IPAフォントなど)
-
-matplotlib.rcParams["axes.unicode_minus"] = False  # マイナス記号対策
