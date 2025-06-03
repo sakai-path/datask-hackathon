@@ -11,6 +11,7 @@ import sqlalchemy as sa
 import matplotlib.pyplot as plt
 import streamlit as st
 import platform
+import matplotlib
 
 # -------------------------------
 # 1. 座席ごとの利用回数
