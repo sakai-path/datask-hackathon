@@ -22,7 +22,7 @@ if platform.system() == "Windows":
 elif platform.system() == "Darwin":
     matplotlib.rc("font", family="Hiragino Maru Gothic Pro")
 else:
-    matplotlib.rc("font", family="IPAPGothic")  # Linux 向け
+    matplotlib.rc("font", family="Noto Sans CJK JP")  # Linux向け代替
 
 matplotlib.rcParams["axes.unicode_minus"] = False  # マイナス記号の文字化け防止
 
