@@ -49,7 +49,7 @@ if query.strip():
 # ─────────────────────────────────────
 with st.sidebar.expander("📂 データベース参照（Seat / Employee / SeatLog）", expanded=False):
     table = st.selectbox("表示するテーブルを選択", ["Seat", "Employee", "SeatLog"])
-    limit = st.slider("表示件数", 10, 500, 100, 10)
+    limit = st.slider("表示件数", 10, 5000, 100, 10)
 
     if st.button("読み込み"):
         df = load_table(table, limit)
