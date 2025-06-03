@@ -13,13 +13,13 @@
 # 戻り値は以下の形式：
 #   {"type": "sql", "sql": "SELECT ..."}
 #   {"type": "chart", "emp_code": "E10001", "name": "田中一郎"}
-#
 # =============================================================================
 
 import json
 from openai import AzureOpenAI
 from core.config import secret
 from core.schema import SCHEMA_HINT
+from core.db import find_empcode_by_name  # ← 追加
 
 # OpenAI クライアント設定
 client = AzureOpenAI(
@@ -97,7 +97,6 @@ def generate_semantic_sql(nl: str) -> dict:
         )
         message = rsp.choices[0].message
 
-        # Function Calling の応答処理
         if message.function_call:
             func_name = message.function_call.name
             args = json.loads(message.function_call.arguments)
@@ -106,15 +105,29 @@ def generate_semantic_sql(nl: str) -> dict:
                 return {"type": "sql", "sql": args["sql"]}
 
             elif func_name == "show_emp_usage_chart":
-                return {
-                    "type": "chart",
-                    "emp_code": args.get("emp_code"),
-                    "name": args.get("name", "")
-                }
+                emp_code = args.get("emp_code")
+                name = args.get("name", "")
+
+                # 補完処理：emp_code がない場合は名前から検索
+                if not emp_code and name:
+                    found = find_empcode_by_name(name)
+                    if found:
+                        emp_code, name = found
+                    else:
+                        return {
+                            "type": "error",
+                            "message": f"該当する社員が見つかりませんでした（氏名: {name}）"
+                        }
+
+                if emp_code:
+                    return {"type": "chart", "emp_code": emp_code, "name": name}
+                else:
+                    return {"type": "error", "message": "社員コードが取得できませんでした。"}
 
         return {"type": "error", "message": "ちょっと意味がわかりませんでした。"}
 
     except Exception as e:
         return {"type": "error", "message": str(e)}
+
 
 
