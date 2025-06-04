@@ -18,6 +18,8 @@ import pandas as pd
 import sqlalchemy as sa
 import streamlit as st
 
+import matplotlib.pyplot as plt
+print(plt.rcParams['font.family'])  # 現在使用中のフォント確認
 
 def get_seat_labels(engine) -> list[str]:
     """すべての Seat.Label を昇順に取得"""
