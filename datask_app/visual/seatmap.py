@@ -18,9 +18,8 @@ import pandas as pd
 import sqlalchemy as sa
 import streamlit as st
 
-# 日本語フォント対応（必ず seatmap.py の先頭に）
-import matplotlib
-matplotlib.rcParams['font.family'] = 'IPAexGothic'  # ← 適宜 'Meiryo' や 'MS Gothic' に変更可
+# Streamlit Cloud 向け：相対パスで日本語フォント指定
+jp_font = FontProperties(fname="fonts/ipaexg.ttf")
 
 def get_seat_labels(engine) -> list[str]:
     """すべての Seat.Label を昇順に取得"""
