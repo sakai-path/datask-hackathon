@@ -18,10 +18,18 @@ import pandas as pd
 import sqlalchemy as sa
 import streamlit as st
 from matplotlib.font_manager import FontProperties
+import os
+from matplotlib.font_manager import FontProperties
 
-# Streamlit Cloud 向け：相対パスで日本語フォント指定
-jp_font = FontProperties(fname="fonts/ipaexg.ttf")
+# フォントファイルへの絶対パスを取得
+font_path = os.path.join(os.path.dirname(__file__), "..", "fonts", "ipaexg.ttf")
+font_path = os.path.abspath(font_path)
 
+if os.path.exists(font_path):
+    jp_font = FontProperties(fname=font_path)
+else:
+    jp_font = None
+    
 def get_seat_labels(engine) -> list[str]:
     """すべての Seat.Label を昇順に取得"""
     sql = "SELECT Label FROM Seat ORDER BY Label"
@@ -73,8 +81,11 @@ def draw_auto_seat_map(labels: list[str], used: list[str], columns: int = 4):
             color = "lightpink" if label in used else "lightblue"
             circle = plt.Circle((x, -y), 0.3, color=color)
             ax.add_patch(circle)
-            ax.text(x, -y, text, ha="center", va="center", color="black", fontsize=9, fontproperties=jp_font)
-
+            if jp_font:
+                ax.text(x, -y, text, ha="center", va="center", fontsize=9, color="black", fontproperties=jp_font)
+            else:
+                ax.text(x, -y, text, ha="center", va="center", fontsize=9, color="black")
+    
     ax.set_xlim(-0.5, columns)
     ax.set_ylim(-len(layout), 0.5)
     ax.set_aspect("equal")
@@ -96,8 +107,11 @@ def draw_auto_seat_map_with_names(labels: list[str], used_label_to_name: dict[st
             text = used_label_to_name[label] if is_used else label
             circle = plt.Circle((x, -y), 0.3, color=color)
             ax.add_patch(circle)
-            ax.text(x, -y, text, ha="center", va="center", color="black", fontsize=9, fontproperties=jp_font)
-
+            if jp_font:
+                ax.text(x, -y, text, ha="center", va="center", fontsize=9, color="black", fontproperties=jp_font)
+            else:
+                ax.text(x, -y, text, ha="center", va="center", fontsize=9, color="black")
+    
     ax.set_xlim(-0.5, columns)
     ax.set_ylim(-len(layout), 0.5)
     ax.set_aspect("equal")
