@@ -1,7 +1,7 @@
 # =============================================================================
-# seatmap.py - Label順に座席を4列ごとに並べて描画
+# seatmap.py - Label順に座席を4列ごとに並べて描画（色調整済み）
 # -----------------------------------------------------------------------------
-# Seat.Label の順序で座席を4列ずつ配置し、使用中の席を赤、空席を緑で描画。
+# 空席は薄いブルー、使用中は薄いピンク、枠線なし。
 # =============================================================================
 
 import matplotlib.pyplot as plt
@@ -30,14 +30,14 @@ def group_labels(labels: list[str], columns: int = 4) -> list[list[str]]:
     return [labels[i:i + columns] for i in range(0, len(labels), columns)]
 
 def draw_auto_seat_map(labels: list[str], used: list[str], columns: int = 4):
-    """固定列でラベル順に並べて座席を描画（色カスタム済み）"""
+    """固定列でラベル順に並べて座席を描画（色調整済み）"""
     layout = group_labels(labels, columns)
     fig, ax = plt.subplots(figsize=(columns + 1, len(layout)))
 
     for y, row in enumerate(layout):
         for x, label in enumerate(row):
             color = "lightpink" if label in used else "lightblue"
-            circle = plt.Circle((x, -y), 0.3, color=color)  # ← ec="black" を削除
+            circle = plt.Circle((x, -y), 0.3, color=color)  # 枠線なし
             ax.add_patch(circle)
             ax.text(x, -y, label, ha="center", va="center", color="black", fontsize=9)
 
