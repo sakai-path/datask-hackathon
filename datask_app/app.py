@@ -31,11 +31,11 @@ st.markdown("""
     padding: 1rem;
     border-radius: 1rem;
     box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
-    font-size: 1.1rem;
     margin-bottom: 1rem;
 }
-.chat-input-box input {
-    width: 100% !important;
+.stTextInput > div > input {
+    background-color: transparent !important;
+    border: none !important;
     font-size: 1.1rem !important;
 }
 </style>
