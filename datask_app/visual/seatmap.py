@@ -17,6 +17,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import sqlalchemy as sa
 import streamlit as st
+from matplotlib.font_manager import FontProperties
 
 # Streamlit Cloud 向け：相対パスで日本語フォント指定
 jp_font = FontProperties(fname="fonts/ipaexg.ttf")
