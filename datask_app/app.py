@@ -24,26 +24,24 @@ st.caption("例：『現在空いている席は？』")
 # ─────────────────────────────────────
 # CSS：吹き出しスタイルと入力欄の一体化
 # ─────────────────────────────────────
+# CSS を修正（入力欄そのものを装飾）
 st.markdown("""
 <style>
-/* 全体吹き出し風ボックス */
-.chat-input-box {
+/* Streamlit input 全体を装飾する方法 */
+div[data-baseweb="input"] {
     background-color: #fff9db;
-    padding: 1rem;
+    padding: 0.8rem;
     border-radius: 1rem;
     box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
     margin-bottom: 1.5rem;
 }
 
-/* 入力ボックス自体を透明化して一体化 */
-.chat-input-box input {
+input[type="text"] {
     background-color: transparent !important;
-    border: none !important;
     font-size: 1.1rem !important;
     padding: 0.4rem !important;
+    border: none !important;
     outline: none !important;
-    box-shadow: none !important;
-    width: 100% !important;
 }
 </style>
 """, unsafe_allow_html=True)
