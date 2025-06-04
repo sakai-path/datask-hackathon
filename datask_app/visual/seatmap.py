@@ -72,7 +72,7 @@ def draw_auto_seat_map(labels: list[str], used: list[str], columns: int = 4):
             color = "lightpink" if label in used else "lightblue"
             circle = plt.Circle((x, -y), 0.3, color=color)
             ax.add_patch(circle)
-            ax.text(x, -y, label, ha="center", va="center", color="black", fontsize=9)
+            ax.text(x, -y, text, ha="center", va="center", color="black", fontsize=9, fontproperties=jp_font)
 
     ax.set_xlim(-0.5, columns)
     ax.set_ylim(-len(layout), 0.5)
@@ -95,7 +95,7 @@ def draw_auto_seat_map_with_names(labels: list[str], used_label_to_name: dict[st
             text = used_label_to_name[label] if is_used else label
             circle = plt.Circle((x, -y), 0.3, color=color)
             ax.add_patch(circle)
-            ax.text(x, -y, text, ha="center", va="center", color="black", fontsize=9)
+            ax.text(x, -y, text, ha="center", va="center", color="black", fontsize=9, fontproperties=jp_font)
 
     ax.set_xlim(-0.5, columns)
     ax.set_ylim(-len(layout), 0.5)
