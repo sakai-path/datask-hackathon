@@ -24,26 +24,19 @@ st.caption("例：『現在空いている席は？』")
 # ─────────────────────────────────────
 # CSS：吹き出しスタイルと入力欄の一体化
 # ─────────────────────────────────────
-# CSS を修正（入力欄そのものを装飾）
 st.markdown("""
-<style>
-/* Streamlit input 全体を装飾する方法 */
-div[data-baseweb="input"] {
+<div style='
     background-color: #fff9db;
-    padding: 0.8rem;
+    padding: 0.75rem 1rem;
     border-radius: 1rem;
-    box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+    margin-top: 0.5rem;
     margin-bottom: 1.5rem;
-}
-
-input[type="text"] {
-    background-color: transparent !important;
-    font-size: 1.1rem !important;
-    padding: 0.4rem !important;
-    border: none !important;
-    outline: none !important;
-}
-</style>
+    display: inline-block;
+    font-size: 0.95rem;
+    color: #333;
+'>
+    💡 例：『現在空いている席は？』
+</div>
 """, unsafe_allow_html=True)
 
 # ─────────────────────────────────────
