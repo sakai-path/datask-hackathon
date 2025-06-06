@@ -120,14 +120,9 @@ def generate_semantic_sql(nl: str) -> dict:
                     else:
                         return {
                             "type": "error",
-                            "message": (
-                                "質問の意図がうまく読み取れませんでした。\n\n"
-                                "例として、以下のような質問ができます：\n"
-                                "・『田中さんの利用状況を教えて』\n"
-                                "・『空いている席は？』\n"
-                                "・『Seat テーブルの中身を見せて』"
-                            )
+                            "message": f"該当する社員が見つかりませんでした（氏名: {name}）"
                         }
+
                 if emp_code:
                     return {"type": "chart", "emp_code": emp_code, "name": name}
                 else:
@@ -140,10 +135,20 @@ def generate_semantic_sql(nl: str) -> dict:
             else:
                 return {"type": "seatmap"}
 
-        return {"type": "error", "message": "ちょっと意味がわかりませんでした。"}
+        return {
+            "type": "error",
+            "message": (
+                "質問の意図がうまく読み取れませんでした。\n\n"
+                "以下のような質問を試してみてください：\n"
+                "・『田中さんの利用状況を教えて』\n"
+                "・『空いている席は？』\n"
+                "・『Seat テーブルの中身を見せて』"
+            )
+        }
 
     except Exception as e:
         return {"type": "error", "message": str(e)}
+
 
 
 
