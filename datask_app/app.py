@@ -46,6 +46,9 @@ with col2:
 show_sql = st.checkbox("生成されたSQLを表示")
 sql_container = st.empty()
 
+st.markdown("### 🔍 AIの生SQL出力（デバッグ）")
+st.code(sql, language="sql")
+
 # ─────────────────────────────────────
 # メイン処理：AIでSQLを生成し、実行または通知
 # ─────────────────────────────────────
