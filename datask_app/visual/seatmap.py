@@ -70,6 +70,7 @@ def draw_auto_seat_map(labels: list[str], used: list[str], columns: int = 4):
     """
     layout = group_labels(labels, columns)
     fig, ax = plt.subplots(figsize=(columns + 1, len(layout)))
+    plt.tight_layout()
 
     for y, row in enumerate(layout):
         for x, label in enumerate(row):
@@ -94,6 +95,7 @@ def draw_auto_seat_map_with_names(labels: list[str], used_label_to_name: dict[st
     """
     layout = group_labels(labels, columns)
     fig, ax = plt.subplots(figsize=(columns + 1, len(layout)))
+    plt.tight_layout()
 
     for y, row in enumerate(layout):
         for x, label in enumerate(row):
@@ -112,3 +114,4 @@ def draw_auto_seat_map_with_names(labels: list[str], used_label_to_name: dict[st
     ax.set_aspect("equal")
     ax.axis("off")
     st.pyplot(fig)
+
