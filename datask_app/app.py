@@ -64,9 +64,8 @@ if st.session_state.run and query.strip():
     result = generate_semantic_sql(query)
 
     # SQL表示（seatmapでも表示される）
-    if show_sql and "sql" in result:
-        with sql_container.expander("🔍 判定内容"):
-            st.code(result["sql"], language="sql")
+    if show_sql and result.get("sql"):
+        st.code(result["sql"], language="sql")
 
     if result["type"] == "seatmap":
         labels = get_seat_labels(engine)
