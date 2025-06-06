@@ -1,7 +1,7 @@
 # =============================================================================
 # app.py - Datask Streamlit アプリ（AIによる動的出力＋DBブラウズ）
 # -----------------------------------------------------------------------------
-# 自然言語の質問をAIで判定し、SQL実行・グラフ描画・座席マップ表示を自動選択。
+# 自然言語の質問をAIで判定し、SQL実行・グラフ描画・座席マップ表示・雑談応答を自動選択。
 # サイドバーではテーブルの任意参照やCSV出力も可能。
 # =============================================================================
 
@@ -22,27 +22,45 @@ from visual.seatmap import (
 # UI 初期設定
 # ─────────────────────────────────────
 st.set_page_config(page_title="おしゃべりデータ", layout="centered")
-st.title("フリーアドレス検索")
+st.title("💬 おしゃべりデータ")
 
-# よくある質問
+# よくある質問を最上部に配置
 with st.expander("💡 よくある質問をクリックで入力", expanded=False):
     col1, col2, col3 = st.columns(3)
     with col1:
         if st.button("現在空いている席は？"):
-            query = "現在空いている席は？"
-            run_button = True
+            st.session_state.query = "現在空いている席は？"
     with col2:
         if st.button("田中さんの月別利用状況は？"):
-            query = "田中さんの月別利用状況は？"
-            run_button = True
+            st.session_state.query = "田中さんの月別利用状況は？"
     with col3:
         if st.button("昨日の使用状況を教えて"):
-            query = "昨日の使用状況を教えて"
-            run_button = True
+            st.session_state.query = "昨日の使用状況を教えて"
+
+st.markdown("### 質問を入力してください（例：『田中さんの月別利用状況は？』など）")
+
+st.markdown("""
+<div style='
+    background-color: #fff9db;
+    padding: 0.75rem 1rem;
+    border-radius: 1rem;
+    margin-top: 0.5rem;
+    margin-bottom: 1.5rem;
+    display: inline-block;
+    font-size: 0.95rem;
+    color: #333;
+'>
+    💡 例：『現在空いている席は？』
+</div>
+""", unsafe_allow_html=True)
+
+if "query" not in st.session_state:
+    st.session_state.query = ""
 
 col1, col2 = st.columns([4, 1])
 with col1:
-    query = st.text_input("質問", placeholder="田中さんの利用状況をグラフで見せて", label_visibility="collapsed")
+    query = st.text_input("質問", value=st.session_state.query, placeholder="田中さんの利用状況をグラフで見せて", label_visibility="collapsed")
+    st.session_state.query = query
 with col2:
     run_button = st.button("送信")
 
@@ -79,6 +97,9 @@ if run_button and query.strip():
         df = get_monthly_usage_by_employee(engine, result["emp_code"])
         draw_monthly_usage_chart(df, name=result.get("name", ""))
 
+    elif result["type"] == "chat":
+        st.info(result["message"])
+
     elif result["type"] == "error":
         st.warning(result["message"])
 
@@ -100,4 +121,5 @@ with st.sidebar.expander("◆データベース参照（Seat / Employee / SeatLo
             file_name=f"{table}.csv",
             mime="text/csv"
         )
+
 
