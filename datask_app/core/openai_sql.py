@@ -32,7 +32,6 @@ client = AzureOpenAI(
 )
 deployment = secret("AZURE_OPENAI_DEPLOYMENT")
 
-
 def get_functions():
     """Function Calling で登録する関数スキーマを定義"""
     return [
@@ -66,7 +65,6 @@ def get_functions():
             }
         }
     ]
-
 
 def generate_semantic_sql(nl: str) -> dict:
     """
@@ -122,15 +120,19 @@ def generate_semantic_sql(nl: str) -> dict:
                     else:
                         return {
                             "type": "error",
-                            "message": f"該当する社員が見つかりませんでした（氏名: {name}）"
+                            "message": (
+                                "質問の意図がうまく読み取れませんでした。\n\n"
+                                "例として、以下のような質問ができます：\n"
+                                "・『田中さんの利用状況を教えて』\n"
+                                "・『空いている席は？』\n"
+                                "・『Seat テーブルの中身を見せて』"
+                            )
                         }
-
                 if emp_code:
                     return {"type": "chart", "emp_code": emp_code, "name": name}
                 else:
                     return {"type": "error", "message": "社員コードが取得できませんでした。"}
 
-        # fallback: 明示的にseatmapを検出
         lower = nl.lower()
         if any(x in lower for x in ["空いている席", "空席", "誰が座って", "使用状況", "今の席"]):
             if any(x in lower for x in ["誰", "名前", "誰が", "座ってる"]):
@@ -142,5 +144,6 @@ def generate_semantic_sql(nl: str) -> dict:
 
     except Exception as e:
         return {"type": "error", "message": str(e)}
+
 
 
