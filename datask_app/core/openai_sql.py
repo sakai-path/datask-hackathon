@@ -71,8 +71,10 @@ def generate_semantic_sql(nl: str) -> dict:
         "質問に応じて、以下のいずれかの関数呼び出しを使ってください：\n"
         "- 社員の利用状況グラフ → show_emp_usage_chart\n"
         "- 現在の座席マップ → show_seatmap\n"
+        "  ・『空いている席』『誰が座ってる』『今の状況』などの質問は必ず show_seatmap を使用してください。\n"
+        "  ・名前付き表示（『誰が座ってる？』など）の場合は detail に 'with_names' を指定してください。\n"
         "- SQLでテーブルのデータ取得 → to_sql\n"
-        "直接的な回答や一般的な雑談はせず、必ず関数形式で返してください。"
+        "一般的な雑談や情報提供などの応答は不要です。必ず関数形式で返してください。"
     )
 
     messages = [
@@ -118,8 +120,3 @@ def generate_semantic_sql(nl: str) -> dict:
 
     except Exception as e:
         return {"type": "error", "message": str(e)}
-
-
-
-
-
