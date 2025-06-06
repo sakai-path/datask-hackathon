@@ -46,8 +46,16 @@ with col2:
 show_sql = st.checkbox("生成されたSQLを表示")
 sql_container = st.empty()
 
-st.markdown("### 🔍 AIの生SQL出力（デバッグ）")
-st.code(sql, language="sql")
+result = generate_semantic_sql(query)
+
+# デバッグ出力（常時表示でも可）
+st.markdown("### 🔍 AIの出力デバッグ表示")
+st.json(result)
+
+# SQLがあれば表示（形式的なSELECT文でなくても）
+if "sql" in result:
+    st.markdown("### 🔍 AIの返した SQL 部分（そのまま表示）")
+    st.code(result["sql"], language="sql")
 
 # ─────────────────────────────────────
 # メイン処理：AIでSQLを生成し、実行または通知
