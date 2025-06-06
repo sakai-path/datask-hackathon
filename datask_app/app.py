@@ -1,50 +1,40 @@
 # =============================================================================
-# app.py - Datask Streamlit アプリ（座席マップ優先表示）
+# app.py - Datask Streamlit アプリ（SQL生成中心構成）
 # -----------------------------------------------------------------------------
-# 自然言語の質問をAIで判定し、SQL実行・グラフ描画・座席マップ表示を自動選択。
-# このバージョンではまずマップ表示を最優先で動作確認。
+# 自然言語での質問に対して、AIがSELECT文を出力し、SQLを実行・表示します。
+# グラフや座席マップの判定はSQLの構造に応じて処理を分岐させます（準備中）。
 # =============================================================================
 
 import streamlit as st
 import pandas as pd
 from core.db import run_query, engine, load_table
 from core.openai_sql import generate_semantic_sql
-from visual.seatmap import (
-    get_seat_labels,
-    get_used_labels,
-    get_used_label_name_dict,
-    draw_auto_seat_map,
-    draw_auto_seat_map_with_names,
-)
 
 # ─────────────────────────────────────
 # UI 初期設定
 # ─────────────────────────────────────
-st.set_page_config(page_title="Dataks", layout="centered")
-st.title("フリーアドレス検索")
+st.set_page_config(page_title="Datask", layout="centered")
+st.title("フリーアドレス検索（SQL AI）")
 
-if "query" not in st.session_state:
-    st.session_state.query = ""
-if "run" not in st.session_state:
-    st.session_state.run = False
-
-# よくある質問ボタン
+# よくある質問を先頭に
 with st.expander("💡 よくある質問（クリックで自動入力）", expanded=False):
     col1, col2, col3 = st.columns(3)
     with col1:
         if st.button("現在空いている席は？"):
             st.session_state.query = "現在空いている席は？"
-            st.session_state.run = True
     with col2:
         if st.button("田中さんの月別利用状況は？"):
             st.session_state.query = "田中さんの月別利用状況は？"
-            st.session_state.run = True
     with col3:
         if st.button("昨日の使用状況を教えて"):
             st.session_state.query = "昨日の使用状況を教えて"
-            st.session_state.run = True
 
-# 入力欄と送信ボタン
+# 入力欄
+if "query" not in st.session_state:
+    st.session_state.query = ""
+if "run" not in st.session_state:
+    st.session_state.run = False
+
 col1, col2 = st.columns([4, 1])
 with col1:
     query = st.text_input("質問", value=st.session_state.query, placeholder="例：現在空いている席は？", label_visibility="collapsed")
@@ -57,31 +47,26 @@ show_sql = st.checkbox("生成されたSQLを表示")
 sql_container = st.empty()
 
 # ─────────────────────────────────────
-# メイン処理：マップ表示優先で処理確認
+# メイン処理：AIでSQLを生成し、実行または通知
 # ─────────────────────────────────────
 if st.session_state.run and query.strip():
     st.session_state.run = False
     result = generate_semantic_sql(query)
 
-    # SQL表示（seatmapでも表示される）
-    if show_sql and result.get("sql"):
-        st.code(result["sql"], language="sql")
-
-    if result["type"] == "seatmap":
-        labels = get_seat_labels(engine)
-        if result.get("detail") == "with_names":
-            used_dict = get_used_label_name_dict(engine)
-            draw_auto_seat_map_with_names(labels, used_dict)
-        else:
-            used = get_used_labels(engine)
-            draw_auto_seat_map(labels, used)
-        st.success("✅ 座席マップを表示しました。")
-
-    elif result["type"] == "error":
-        st.warning(result["message"])
+    if result["type"] == "sql":
+        try:
+            df = run_query(result["sql"])
+            st.dataframe(df, use_container_width=True)
+            if show_sql:
+                with sql_container:
+                    st.code(result["sql"], language="sql")
+        except Exception as e:
+            st.error(f"SQL実行エラー: {e}")
+    else:
+        st.warning(result.get("message", "AIが理解できませんでした。"))
 
 # ─────────────────────────────────────
-# サイドバー：DBテーブル閲覧とCSV出力
+# サイドバー：テーブル参照とCSV出力
 # ─────────────────────────────────────
 with st.sidebar.expander("◆データベース参照（Seat / Employee / SeatLog）", expanded=False):
     table = st.selectbox("表示するテーブルを選択", ["Seat", "Employee", "SeatLog"])
