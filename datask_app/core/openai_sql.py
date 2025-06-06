@@ -1,23 +1,11 @@
 # =============================================================================
-# openai_sql.py - 自然言語からSQL文・グラフ指示・座席マップ指示・雑談応答を生成（Azure OpenAI対応）
+# openai_sql.py - 自然言語からSQL文・グラフ指示・座席マップ指示・雑談応答を生成
 # -----------------------------------------------------------------------------
-# ユーザーの日本語の質問を受け取り、Azure OpenAI の Function Calling 機能を使って
-# 以下のいずれかを判定・出力します：
-# - 読み取り専用の T-SQL（SELECT 文）を生成
-# - 社員の月別利用グラフの表示指示を生成
-# - 現在の座席マップ表示指示を生成（社員名表示も対応）
-# - 雑談などは通常チャット応答として返答
-#
-# 使用例：
-#   result = generate_semantic_sql("昨日空いていた席は？")
-#   result = generate_semantic_sql("田中さんのグラフを見せて")
-#   result = generate_semantic_sql("こんにちは")
-#
-# 戻り値の例：
-#   {"type": "sql", "sql": "SELECT ..."}
-#   {"type": "chart", "emp_code": "E10001", "name": "田中一郎"}
-#   {"type": "seatmap"} または {"type": "seatmap", "detail": "with_names"}
-#   {"type": "chat", "message": "こんにちは！ご質問があれば何でもどうぞ。"}
+# Azure OpenAI Function Calling 機能を活用して、以下を出力します：
+# - SELECT文による読み取り専用SQL（type: 'sql'）
+# - 社員コードを含む利用状況グラフ（type: 'chart'）
+# - 座席マップ表示（type: 'seatmap' または seatmap with_names）
+# - その他の質問には自然な雑談応答（type: 'chat'）を返します。
 # =============================================================================
 
 import json
@@ -37,18 +25,16 @@ def get_functions():
     return [
         {
             "name": "to_sql",
-            "description": "自然言語から読み取り専用のT-SQL SELECT文を生成します。",
+            "description": "自然言語からT-SQL SELECT文を生成します。",
             "parameters": {
                 "type": "object",
-                "properties": {
-                    "sql": {"type": "string"}
-                },
+                "properties": {"sql": {"type": "string"}},
                 "required": ["sql"]
-            }
+            },
         },
         {
             "name": "show_emp_usage_chart",
-            "description": "特定の社員の月別利用グラフを表示する指示を生成します。",
+            "description": "社員の月別利用グラフを表示します。",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -56,24 +42,42 @@ def get_functions():
                     "name": {"type": "string"}
                 },
                 "required": ["emp_code"]
+            },
+        },
+        {
+            "name": "show_seatmap",
+            "description": "現在の座席マップを表示します。社員名表示あり/なしを選べます。",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "detail": {
+                        "type": "string",
+                        "enum": ["with_names"],
+                        "description": "社員名を表示する場合は 'with_names' を指定"
+                    }
+                },
+                "required": []
             }
         }
     ]
 
 def generate_semantic_sql(nl: str) -> dict:
+    """
+    日本語の自然文を Function Calling により目的別に変換。
+    戻り値は type: sql/chart/seatmap/chat/error を含む dict。
+    """
     system = (
-        "あなたは社内座席・勤務データに関するAIアシスタントです。\n"
-        "以下の分類に従って、質問の種類を判定してください：\n\n"
-        "- 質問が座席の空き状況や誰がどこに座っているかに関する場合 → 'type': 'seatmap' を返してください。\n"
-        "  ・もし社員名を表示する方が適切な場合（例：誰が座ってる？） → 'detail': 'with_names' を含めてください。\n"
-        "- 質問が社員の利用傾向（例：〇〇さんの利用状況）に関する場合 → 'type': 'chart' と社員情報を返してください。\n"
-        "- それ以外（データの一覧表示など） → 'type': 'sql' とSQL文を返してください。\n"
-        "- 雑談・あいさつなど業務と関係のない質問には、'type': 'chat' を返し、messageに自然な応答を書いてください。"
+        "あなたは社内のデータベースに対するアシスタントです。\n"
+        "質問に応じて、以下のいずれかの関数呼び出しを使ってください：\n"
+        "- 社員の利用状況グラフ → show_emp_usage_chart\n"
+        "- 現在の座席マップ → show_seatmap\n"
+        "- SQLでテーブルのデータ取得 → to_sql\n"
+        "直接的な回答や一般的な雑談はせず、必ず関数形式で返してください。"
     )
 
     messages = [
         {"role": "system", "content": system + "\n\n" + SCHEMA_HINT},
-        {"role": "user", "content": nl}
+        {"role": "user", "content": nl},
     ]
 
     try:
@@ -101,26 +105,16 @@ def generate_semantic_sql(nl: str) -> dict:
                     if found:
                         emp_code, name = found
                     else:
-                        return {"type": "error", "message": f"該当する社員が見つかりませんでした（氏名: {name}）"}
-                if emp_code:
-                    return {"type": "chart", "emp_code": emp_code, "name": name}
-                else:
-                    return {"type": "error", "message": "社員コードが取得できませんでした。"}
+                        return {"type": "error", "message": f"該当する社員が見つかりません（{name}）"}
+                return {"type": "chart", "emp_code": emp_code, "name": name}
 
-        # 通常の自然文メッセージとして返すようなものが含まれているかを確認
-        if message.content:
-            return {"type": "chat", "message": message.content.strip()}
+            elif func_name == "show_seatmap":
+                detail = args.get("detail")
+                if detail == "with_names":
+                    return {"type": "seatmap", "detail": "with_names"}
+                return {"type": "seatmap"}
 
-        return {
-            "type": "error",
-            "message": (
-                "質問の意図がうまく読み取れませんでした。\n\n"
-                "以下のような質問を試してみてください：\n"
-                "・『田中さんの利用状況を教えて』\n"
-                "・『空いている席は？』\n"
-                "・『Seat テーブルの中身を見せて』"
-            )
-        }
+        return {"type": "error", "message": "AIが適切な応答を返せませんでした。"}
 
     except Exception as e:
         return {"type": "error", "message": str(e)}
