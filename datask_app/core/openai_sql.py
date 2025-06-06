@@ -22,6 +22,7 @@ client = AzureOpenAI(
 )
 deployment = secret("AZURE_OPENAI_DEPLOYMENT")
 
+
 def get_functions():
     return [
         {
@@ -63,25 +64,19 @@ def get_functions():
         }
     ]
 
+
 def generate_semantic_sql(nl: str) -> dict:
     """
     自然言語の質問をFunction Callingまたは通常出力で解析し、
     SQL/グラフ/マップ/雑談のいずれかを返す。
     """
     system = (
-        "あなたは社内データに関するAIアシスタントです。
-"
-        "次のように処理を分類してください：
-
-"
-        "- 座席に関する質問 → show_seatmap
-"
-        "- ○○さんの利用状況 → show_emp_usage_chart
-"
-        "- データ参照や集計 → to_sql
-"
-        "- 雑談（天気・挨拶など） → 通常のメッセージとして返答
-"
+        "あなたは社内データに関するAIアシスタントです。\n"
+        "次のように処理を分類してください：\n"
+        "- 座席に関する質問 → show_seatmap\n"
+        "- ○○さんの利用状況 → show_emp_usage_chart\n"
+        "- データ参照や集計 → to_sql\n"
+        "- 雑談（天気・挨拶など） → 通常のメッセージとして返答\n"
         "SELECT以外のSQL（INSERT/UPDATE/DELETE）は絶対に生成しないでください。"
     )
 
