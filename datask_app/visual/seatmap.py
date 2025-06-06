@@ -77,14 +77,15 @@ def draw_auto_seat_map(labels: list[str], used: list[str], columns: int = 4):
     fig, ax = plt.subplots(figsize=(columns + 1, len(layout)))
 
     for y, row in enumerate(layout):
-        for x, label in enumerate(row):
-            color = "lightpink" if label in used else "lightblue"
-            circle = plt.Circle((x, -y), 0.3, color=color)
-            ax.add_patch(circle)
-            if jp_font:
-                ax.text(x, -y, text, ha="center", va="center", fontsize=9, color="black", fontproperties=jp_font)
-            else:
-                ax.text(x, -y, text, ha="center", va="center", fontsize=9, color="black")
+    for x, label in enumerate(row):
+        color = "lightpink" if label in used else "lightblue"
+        circle = plt.Circle((x, -y), 0.3, color=color)
+        ax.add_patch(circle)
+        display_text = label  # ← これを追加
+        if jp_font:
+            ax.text(x, -y, display_text, ha="center", va="center", fontsize=9, color="black", fontproperties=jp_font)
+        else:
+            ax.text(x, -y, display_text, ha="center", va="center", fontsize=9, color="black")
     
     ax.set_xlim(-0.5, columns)
     ax.set_ylim(-len(layout), 0.5)
