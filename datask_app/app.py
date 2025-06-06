@@ -22,7 +22,7 @@ from visual.seatmap import (
 # UI 初期設定
 # ─────────────────────────────────────
 st.set_page_config(page_title="おしゃべりデータ", layout="centered")
-st.title("\U0001F4AC おしゃべりデータ")
+st.title("💬 おしゃべりデータ")
 
 st.markdown("### 質問を入力してください（例：『田中さんの月別利用状況は？』など）")
 
@@ -41,14 +41,35 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-query = st.text_input("質問", placeholder="田中さんの利用状況をグラフで見せて")
+col1, col2 = st.columns([4, 1])
+with col1:
+    query = st.text_input("質問", placeholder="田中さんの利用状況をグラフで見せて", label_visibility="collapsed")
+with col2:
+    run_button = st.button("送信")
+
+# よくある質問
+with st.expander("💡 よくある質問をクリックで入力", expanded=False):
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        if st.button("現在空いている席は？"):
+            query = "現在空いている席は？"
+            run_button = True
+    with col2:
+        if st.button("田中さんの月別利用状況は？"):
+            query = "田中さんの月別利用状況は？"
+            run_button = True
+    with col3:
+        if st.button("昨日の使用状況を教えて"):
+            query = "昨日の使用状況を教えて"
+            run_button = True
+
 show_sql = st.checkbox("生成されたSQLを表示")
 sql_container = st.empty()
 
 # ─────────────────────────────────────
 # メイン処理：AIによる出力種別の判定と動的表示
 # ─────────────────────────────────────
-if query.strip():
+if run_button and query.strip():
     result = generate_semantic_sql(query)
 
     if result["type"] == "seatmap":
@@ -66,7 +87,7 @@ if query.strip():
             df = run_query(result["sql"])
             st.dataframe(df, use_container_width=True)
             if show_sql:
-                with sql_container.expander("\U0001F50D 生成されたSQL"):
+                with sql_container.expander("🔍 生成されたSQL"):
                     st.code(result["sql"], language="sql")
         except Exception as e:
             st.error(f"SQL実行エラー: {e}")
