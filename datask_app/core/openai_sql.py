@@ -112,11 +112,15 @@ def generate_semantic_sql(nl: str) -> dict:
 
             elif func_name == "show_seatmap":
                 detail = args.get("detail")
+                result = {"type": "seatmap"}
                 if detail == "with_names":
-                    return {"type": "seatmap", "detail": "with_names"}
-                return {"type": "seatmap"}
+                    result["detail"] = "with_names"
+                # SQLの追跡用に仮の説明を追加（チェックがオンのときのみUI側で表示）
+                result["sql"] = f"-- AI判定：座席マップ呼び出し ({'名前付き' if detail == 'with_names' else 'ラベルのみ'})"
+                return result
 
         return {"type": "error", "message": "AIが適切な応答を返せませんでした。"}
 
     except Exception as e:
         return {"type": "error", "message": str(e)}
+
