@@ -1,19 +1,16 @@
 # =============================================================================
-# openai_sql.py - 自然言語からSQL文・グラフ指示・座席マップ指示・雑談応答を生成
+# openai_sql.py - 自然言語からSQL文を生成するAIモジュール（Function Calling 不使用）
 # -----------------------------------------------------------------------------
-# Azure OpenAI Function Calling 機能を活用して、以下を出力します：
-# - SELECT文による読み取り専用SQL（type: 'sql'）
-# - 社員コードを含む利用状況グラフ（type: 'chart'）
-# - 座席マップ表示（type: 'seatmap' または seatmap with_names）
-# - その他の質問には自然な雑談応答（type: 'chat'）を返します。
+# ユーザーの日本語質問に対し、Azure OpenAI を使って SELECT文を直接生成。
+# 必ずT-SQLのSELECT文のみを返し、INSERT/UPDATE/DELETEは禁止。
 # =============================================================================
 
 import json
 from openai import AzureOpenAI
 from core.config import secret
 from core.schema import SCHEMA_HINT
-from core.db import find_empcode_by_name
 
+# OpenAI クライアント設定
 client = AzureOpenAI(
     api_version="2024-05-01-preview",
     azure_endpoint=secret("AZURE_OPENAI_ENDPOINT"),
@@ -21,106 +18,40 @@ client = AzureOpenAI(
 )
 deployment = secret("AZURE_OPENAI_DEPLOYMENT")
 
-def get_functions():
-    return [
-        {
-            "name": "to_sql",
-            "description": "自然言語からT-SQL SELECT文を生成します。",
-            "parameters": {
-                "type": "object",
-                "properties": {"sql": {"type": "string"}},
-                "required": ["sql"]
-            },
-        },
-        {
-            "name": "show_emp_usage_chart",
-            "description": "社員の月別利用グラフを表示します。",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "emp_code": {"type": "string"},
-                    "name": {"type": "string"}
-                },
-                "required": ["emp_code"]
-            },
-        },
-        {
-            "name": "show_seatmap",
-            "description": "現在の座席マップを表示します。社員名表示あり/なしを選べます。",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "detail": {
-                        "type": "string",
-                        "enum": ["with_names"],
-                        "description": "社員名を表示する場合は 'with_names' を指定"
-                    }
-                },
-                "required": []
-            }
-        }
-    ]
 
 def generate_semantic_sql(nl: str) -> dict:
     """
-    日本語の自然文を Function Calling により目的別に変換。
-    戻り値は type: sql/chart/seatmap/chat/error を含む dict。
+    日本語の自然言語を SELECT文に変換。
+
+    Returns:
+        dict: { "type": "sql", "sql": "SELECT ..." } または
+              { "type": "error", "message": "..." }
     """
-    system = (
-        "あなたは社内のデータベースに対するアシスタントです。\n"
-        "質問に応じて、以下のいずれかの関数呼び出しを使ってください：\n"
-        "- 社員の利用状況グラフ → show_emp_usage_chart\n"
-        "- 現在の座席マップ → show_seatmap\n"
-        "  ・『空いている席』『誰が座ってる』『今の状況』などの質問は必ず show_seatmap を使用してください。\n"
-        "  ・名前付き表示（『誰が座ってる？』など）の場合は detail に 'with_names' を指定してください。\n"
-        "- SQLでテーブルのデータ取得 → to_sql\n"
-        "一般的な雑談や情報提供などの応答は不要です。必ず関数形式で返してください。"
+    system_prompt = (
+        "あなたは社内データベース専用のAIアシスタントです。"
+        "ユーザーからの日本語の質問に対して、T-SQL形式のSELECT文だけを出力してください。"
+        "絶対にINSERT, UPDATE, DELETE, DROP, CREATE, ALTERは出さないでください。"
+        "コメントや補足も不要です。"
+        "以下のスキーマ定義を参考に、正確なクエリを生成してください。"
     )
 
     messages = [
-        {"role": "system", "content": system + "\n\n" + SCHEMA_HINT},
-        {"role": "user", "content": nl},
+        {"role": "system", "content": system_prompt + "\n\n" + SCHEMA_HINT},
+        {"role": "user", "content": nl}
     ]
 
     try:
         rsp = client.chat.completions.create(
             model=deployment,
             messages=messages,
-            functions=get_functions(),
-            function_call="auto",
             temperature=0,
         )
-        message = rsp.choices[0].message
+        sql = rsp.choices[0].message.content.strip()
 
-        if message.function_call:
-            func_name = message.function_call.name
-            args = json.loads(message.function_call.arguments)
+        if not sql.lower().startswith("select"):
+            return {"type": "error", "message": "SELECT文以外の出力がありました。"}
 
-            if func_name == "to_sql":
-                return {"type": "sql", "sql": args["sql"]}
-
-            elif func_name == "show_emp_usage_chart":
-                emp_code = args.get("emp_code")
-                name = args.get("name", "")
-                if not emp_code and name:
-                    found = find_empcode_by_name(name)
-                    if found:
-                        emp_code, name = found
-                    else:
-                        return {"type": "error", "message": f"該当する社員が見つかりません（{name}）"}
-                return {"type": "chart", "emp_code": emp_code, "name": name}
-
-            elif func_name == "show_seatmap":
-                detail = args.get("detail")
-                result = {"type": "seatmap"}
-                if detail == "with_names":
-                    result["detail"] = "with_names"
-                # SQLの追跡用に仮の説明を追加（チェックがオンのときのみUI側で表示）
-                result["sql"] = f"-- AI判定：座席マップ呼び出し ({'名前付き' if detail == 'with_names' else 'ラベルのみ'})"
-                return result
-
-        return {"type": "error", "message": "AIが適切な応答を返せませんでした。"}
+        return {"type": "sql", "sql": sql}
 
     except Exception as e:
         return {"type": "error", "message": str(e)}
-
