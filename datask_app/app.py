@@ -22,28 +22,7 @@ from visual.seatmap import (
 # UI 初期設定
 # ─────────────────────────────────────
 st.set_page_config(page_title="おしゃべりデータ", layout="centered")
-st.title("フリーアドレス")
-
-st.markdown("""
-<div style='
-    background-color: #fff9db;
-    padding: 0.75rem 1rem;
-    border-radius: 1rem;
-    margin-top: 0.5rem;
-    margin-bottom: 1.5rem;
-    display: inline-block;
-    font-size: 0.95rem;
-    color: #333;
-'>
-    💡 例：『現在空いている席は？』
-</div>
-""", unsafe_allow_html=True)
-
-col1, col2 = st.columns([4, 1])
-with col1:
-    query = st.text_input("質問", placeholder="田中さんの利用状況をグラフで見せて", label_visibility="collapsed")
-with col2:
-    run_button = st.button("送信")
+st.title("フリーアドレス検索")
 
 # よくある質問
 with st.expander("💡 よくある質問をクリックで入力", expanded=False):
@@ -60,6 +39,12 @@ with st.expander("💡 よくある質問をクリックで入力", expanded=Fal
         if st.button("昨日の使用状況を教えて"):
             query = "昨日の使用状況を教えて"
             run_button = True
+
+col1, col2 = st.columns([4, 1])
+with col1:
+    query = st.text_input("質問", placeholder="田中さんの利用状況をグラフで見せて", label_visibility="collapsed")
+with col2:
+    run_button = st.button("送信")
 
 show_sql = st.checkbox("生成されたSQLを表示")
 sql_container = st.empty()
