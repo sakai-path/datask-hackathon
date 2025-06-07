@@ -72,7 +72,7 @@ def draw_monthly_usage_chart(df: pd.DataFrame, name: str = ""):
         return
     fig, ax = plt.subplots(figsize=(8, 4))
     ax.bar(df["Month"], df["UsageCount"], color="salmon", edgecolor="black")
-    ax.set_title(f"Monthly Usage - {name}")
+    ax.set_title(f"Monthly Usage")
     ax.set_xlabel("Month")
     ax.set_ylabel("Usage Count")
     ax.set_xticks(range(len(df["Month"])))
