@@ -1,11 +1,9 @@
-# おしゃべりデータ（Datask） 🎫
+# おしゃべりデータ（Datask） 
 
 **Datask** は「自然言語で Azure SQL を検索・可視化できる」 Streamlit 製アプリです。
 
 > *"田中さんの月別利用状況をグラフで見せて"*──そんな会話だけで、AI が  
 > ① 日本語 → ② T-SQL 変換 → ③ DB クエリ → ④ 表・グラフ表示 まで自動で行います。
-
-
 
 ---
 
@@ -23,17 +21,7 @@
 
 ## 🗺️ アーキテクチャ概要
 
-```
-User ──▶ Streamlit UI ──▶ Azure OpenAI (GPT-4) ──▶
-           │                    │                   │
-       (自然言語)          Function Calling         ▼
-           │                    │                   │
-           ▼                    ▼                   │
-   Azure AI Search ◀─────────────── 生成SQL / グラフ指示
-                                   │
-                                   ▼
-                           Azure SQL Database
-```
+＊＊
 
 ---
 
@@ -51,77 +39,68 @@ User ──▶ Streamlit UI ──▶ Azure OpenAI (GPT-4) ──▶
 
 ---
 
-## 📦 クイックスタート
-
-### 1. クローン & 依存パッケージのインストール
-
-```bash
-git clone https://github.com/<your-account>/datask-hackathon.git
-cd datask-hackathon
-pip install -r requirements.txt
-```
-
-### 2. シークレット設定（`.streamlit/secrets.toml` または環境変数）
-
-```toml
-# Azure SQL
-AZURE_SQL_SERVER = "<your-sql-server>.database.windows.net"
-AZURE_SQL_DB = "SeatDB"
-AZURE_SQL_USER = "sqladmin"
-AZURE_SQL_PASSWORD = "********"
-
-# Azure OpenAI
-AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com/"
-AZURE_OPENAI_API_KEY = "********"
-AZURE_OPENAI_DEPLOYMENT = "gpt4o-sql"
-
-# Azure AI Search（任意）
-AZURE_SEARCH_ENDPOINT = "https://<your-search>.search.windows.net"
-AZURE_SEARCH_API_KEY = "********"
-```
-
-### 3. ダミーデータ投入（任意）
-
-```bash
-python -m datask_app.testdata.seatlog_dummy
-```
-
-### 4. アプリ起動
-
-```bash
-streamlit run datask_app/app.py
-```
-
-ブラウザで `http://localhost:8501` を開くとUIが表示されます。
-
----
 
 ## 📁 ディレクトリ構成
 
 ```
-datask_app/
-├── app.py                    # Streamlit のエントリーポイント
-├── core/                     # DB接続・SQL生成・OpenAI連携
-│   ├── db.py
-│   ├── openai_sql.py
-│   ├── schema.py
-│   └── config.py
-├── visual/                   # グラフや座席マップ描画モジュール
-│   ├── charts.py
-│   └── seatmap.py
-├── testdata/
-│   └── seatlog_dummy.py      # ダミーデータ生成スクリプト
-├── tools/
-│   └── upload_faq.py         # FAQデータをAzure AI Searchに登録
-└── .streamlit/
-    └── secrets.toml          # 認証キー設定ファイル
+datask_app/ ← アプリ本体（Streamlit 実行対象）
+│
+├── 📄 main.py ← Streamlit アプリのエントリーポイント（UI構築）
+│
+├── 📁 core/ ← データベース＆OpenAI連携などの中核機能
+│ ├── db.py ← Azure SQL接続＆クエリ実行、テーブル取得
+│ ├── openai_sql.py ← Azure OpenAI (Function Calling) によるSQL生成
+│ └── config.py ← Secretsや環境設定のラッパー関数
+│
+├── 📁 visual/ ← 可視化系（座席マップ、グラフなど）
+│ ├── seatmap.py ← 丸やレイアウトで座席を表示する機能
+│ └── usage_chart.py ← 社員別・座席別の利用回数などのグラフ表示
+│
+├── 📁 testdata/ ← 一時的なダミーデータ登録用モジュール（初期のみ使用）
+│ └── seatlog_dummy.py ← SeatLog に対してテストデータを登録
+│
+├── 📁 .streamlit/ ← Streamlit設定ディレクトリ（Cloud Secrets）
+│ └── secrets.toml ← APIキーや接続情報の定義（ローカル実行時）
+│
+├── 📄 requirements.txt ← 必要なPythonパッケージ一覧
+└── 📄 packages.txt ← msodbcsqlなどのLinux依存パッケージ（Streamlit Cloud用）
 ```
 
 ---
 
-## 🗒️ ライセンス
+## 🗂 データベース構成（3テーブル設計）
 
-MIT License を採用しています。詳細は LICENSE をご覧ください。
+# 座席管理システム テーブル定義
+
+## 1. Seat テーブル（座席マスタ）
+各座席の識別と属性情報を管理
+
+| 列名 | 型 | 説明 |
+|------|----|----|
+| SeatId | INT（PK） | 座席ID（自動採番） |
+| Label | NVARCHAR(20) | 表示名（例: A-1） |
+| Area | NVARCHAR(20) | エリア名（例: 北フロア） |
+| SeatType | NVARCHAR(20) | 種別（例: フリー/固定） |
+
+## 2. Employee テーブル（社員マスタ）
+利用者（社員）の情報を管理
+
+| 列名 | 型 | 説明 |
+|------|----|----|
+| EmpCode | VARCHAR(10)（PK） | 社員コード（例: E10001） |
+| Name | NVARCHAR(50) | 氏名 |
+| Dept | NVARCHAR(30) | 部署 |
+
+## 3. SeatLog テーブル（着席ログ）
+誰がいつどの席を使ったかの記録
+
+| 列名 | 型 | 説明 |
+|------|----|----|
+| LogId | INT（PK） | ログID（自動採番） |
+| SeatId | INT（FK→Seat） | 使用された座席ID |
+| EmpCode | VARCHAR(10)（FK→Employee） | 利用者の社員コード |
+| CheckIn | DATETIME2 | 着席時刻 |
+| CheckOut | DATETIME2（NULL可） | 離席時刻（まだ座っている場合はNULL） |
 
 ---
 
