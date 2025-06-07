@@ -50,18 +50,19 @@ with col3:
 # ──────────────────────────────
 # 入力欄と送信ボタン + 「なにが聞けますか？」ボタン
 # ──────────────────────────────
-query = st.text_input("質問を入力してください", value=st.session_state.query, placeholder="例：現在空いている席は？", label_visibility="visible")
+q# テキスト入力欄（上部）
+query = st.text_input("質問を入力してください", value=st.session_state.query, placeholder="例：現在空いている席は？")
 st.session_state.query = query
 
-# テキストの下に2つのボタンを横並び配置
-btn_col1, btn_col2 = st.columns([1, 2])
+# 送信ボタン + なにが聞けますか？ を近くに横並びで表示
+col1, spacer, col2 = st.columns([1, 0.1, 2])
 
-with btn_col1:
+with col1:
     if st.button("送信"):
         st.session_state.run = True
 
-with btn_col2:
-    if st.button("なにが聞けますか？"):
+with col2:
+    if st.button("なにが聞ける？"):
         st.session_state.query = "なにが聞ける？"
         st.session_state.run = True
 
