@@ -21,8 +21,8 @@ from visual.seatmap import (
 # ─────────────────────────────────────
 # UI 初期設定
 # ─────────────────────────────────────
-st.set_page_config(page_title="フリーアドレス検索", layout="centered", page_icon="💼")
-st.title("💼 フリーアドレス検索")
+st.set_page_config(page_title="Datask", layout="centered", page_icon="❄️")
+st.title("❄️フリーアドレス検索")
 
 if "query" not in st.session_state:
     st.session_state.query = ""
@@ -32,7 +32,7 @@ if "run" not in st.session_state:
 # ─────────────────────────────────────
 # よくある質問（上部ボタン）
 # ─────────────────────────────────────
-col1, col2, col3 = st.columns(3)
+col1, col2 = st.columns(3)
 with col1:
     if st.button("座席マップを見せて"):
         st.session_state.query = "今の座席マップを見せて"
@@ -41,24 +41,14 @@ with col2:
     if st.button("田中さんの利用状況"):
         st.session_state.query = "田中さんの5月利用状況"
         st.session_state.run = True
-with col3:
-    if st.button("なにが聞けますか"):
-        st.session_state.query = "なにが聞ける？"
-        st.session_state.run = True
 
 # ─────────────────────────────────────
 # テキスト入力欄と下部ボタン
 # ─────────────────────────────────────
-query = st.text_input("質問を入力してください", value=st.session_state.query, placeholder="例：現在空いている席は？")
+query = st.text_input("質問を入力してください", value=st.session_state.query, placeholder="例：なにが聞ける？")
 st.session_state.query = query
 
-col_a, col_b = st.columns([1, 3])
-with col_a:
-    if st.button("送信"):
-        st.session_state.run = True
-with col_b:
-    if st.button("なにが聞けますか？"):
-        st.session_state.query = "なにが聞ける？"
+if st.button("送信"):
         st.session_state.run = True
 
 show_sql = st.checkbox("生成されたSQLを表示")
