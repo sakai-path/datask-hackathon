@@ -1,9 +1,8 @@
-
 # =============================================================================
-# app.py - Datask Streamlit アプリ（Function Calling + UI改善）
+# app.py - Datask Streamlit アプリ（Function Calling + UI改善 + Enter送信対応）
 # -----------------------------------------------------------------------------
 # 自然言語からAIによってSQL生成・座席マップ表示・利用グラフ表示・雑談応答を切り替え。
-# よくある質問ボタンや「なにが聞けますか？」ボタンもUIに統合。
+# よくある質問ボタンや送信ボタン、Enterキー送信にも対応。
 # =============================================================================
 
 import streamlit as st
@@ -48,13 +47,21 @@ with col3:
         st.session_state.run = True
 
 # ─────────────────────────────────────
-# テキスト入力欄と送信ボタン（横並び）
+# 質問入力（Enterで実行対応）＋送信ボタン
 # ─────────────────────────────────────
-# 質問入力欄（上部）
-query = st.text_input("質問を入力してください", value=st.session_state.query, placeholder="例：なにが聞ける？")
-st.session_state.query = query
+def on_enter():
+    st.session_state.run = True
 
-# 送信ボタンのみ（横並びの不要なcol分割も削除）
+query = st.text_input(
+    "質問を入力してください",
+    value=st.session_state.query,
+    placeholder="例：なにが聞ける？",
+    key="query_input",
+    on_change=on_enter
+)
+st.session_state.query = st.session_state.query_input
+
+# 送信ボタン（Enterと併用可）
 if st.button("送信"):
     st.session_state.run = True
 
@@ -65,9 +72,9 @@ sql_container = st.empty()
 # ─────────────────────────────────────
 # メイン処理
 # ─────────────────────────────────────
-if st.session_state.run and query.strip():
+if st.session_state.run and st.session_state.query.strip():
     st.session_state.run = False
-    result = generate_semantic_sql(query)
+    result = generate_semantic_sql(st.session_state.query)
 
     if result["type"] == "seatmap":
         labels = get_seat_labels(engine)
@@ -77,7 +84,6 @@ if st.session_state.run and query.strip():
         else:
             used = get_used_labels(engine)
             draw_auto_seat_map(labels, used)
-
         st.success("🪑 座席マップを表示しました。")
         if show_sql:
             with sql_container.expander("🔍 AIによる判定内容"):
