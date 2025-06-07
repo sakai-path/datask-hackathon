@@ -39,12 +39,12 @@ with col1:
         st.session_state.query = "今の座席マップを見せて"
         st.session_state.run = True
 with col2:
-    if st.button("田中さんの利用状況"):
-        st.session_state.query = "田中さんの5月利用状況"
+    if st.button("部署別の利用情報"):
+        st.session_state.query = "部署別の利用情報"
         st.session_state.run = True
 with col3:
-    if st.button("なにが聞けますか"):
-        st.session_state.query = "なにが聞けますか"
+    if st.button("田中さんの利用状況"):
+        st.session_state.query = "田中さんの利用状況"
         st.session_state.run = True
 
 # ─────────────────────────────────────
