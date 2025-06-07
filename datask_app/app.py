@@ -47,16 +47,22 @@ with col3:
         st.session_state.query = "なにが聞けますか"
         st.session_state.run = True
 
-# ───────────────────────────────
-# 質問欄
-# ───────────────────────────────
-query = st.text_input("質問を入力してください", value=st.session_state.query, key="question_input", on_change=lambda: st.session_state.update(run=True))
+# ──────────────────────────────
+# 入力欄と送信ボタン + 「なにが聞けますか？」ボタン
+# ──────────────────────────────
+col1, col2, col3 = st.columns([4, 1, 2])
+with col1:
+    query = st.text_input("質問を入力してください", value=st.session_state.query, placeholder="例：現在空いている席は？", label_visibility="visible")
+    st.session_state.query = query
 
-if st.button("送信"):
-    st.session_state.run = True
+with col2:
+    if st.button("送信"):
+        st.session_state.run = True
 
-show_sql = st.checkbox("生成されたSQLを表示", value=False)
-sql_container = st.empty()
+with col3:
+    if st.button("なにが聞けますか？"):
+        st.session_state.query = "なにが聞ける？"
+        st.session_state.run = True
 
 # ───────────────────────────────
 # 実行処理
