@@ -35,16 +35,16 @@ if "run" not in st.session_state:
 btn_style = "margin-right: 1rem; margin-bottom: 0.5rem;"
 col1, col2, col3 = st.columns(3)
 with col1:
-    if st.button("現在空いている席は？", use_container_width=True):
-        st.session_state.query = "現在空いている席は？"
+    if st.button("座席マップを見せて", use_container_width=True):
+        st.session_state.query = "座席マップを見せて"
         st.session_state.run = True
 with col2:
-    if st.button("なにが聞ける？", use_container_width=True):
-        st.session_state.query = "なにが聞ける？"
+    if st.button("田中さんの利用状況", use_container_width=True):
+        st.session_state.query = "田中さんの利用状況"
         st.session_state.run = True
 with col3:
-    if st.button("田中さんの５月利用状況", use_container_width=True):
-        st.session_state.query = "田中さんの５月利用状況"
+    if st.button("なにが聞けますか", use_container_width=True):
+        st.session_state.query = "なにが聞けますか"
         st.session_state.run = True
 
 # ───────────────────────────────
