@@ -72,12 +72,12 @@ def generate_semantic_sql(nl: str) -> dict:
     """
     system = (
         "あなたは社内データに関するAIアシスタントです。\n"
-        "次のように処理を分類してください：\n"
+        "次のように処理を分類してください：\n\n"
         "- 座席に関する質問 → show_seatmap\n"
         "- ○○さんの利用状況 → show_emp_usage_chart\n"
         "- データ参照や集計 → to_sql\n"
         "- 雑談（天気・挨拶など） → 通常のメッセージとして返答\n"
-        "SELECT以外のSQL（INSERT/UPDATE/DELETE）は絶対に生成しないでください。"
+        "SELECT以外のSQL（INSERT/UPDATE/DELETE）は絶対に生成しないでください。\n"
     )
 
     messages = [
