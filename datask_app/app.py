@@ -32,22 +32,21 @@ if "run" not in st.session_state:
 # ─────────────────────────────────────
 # よくある質問（常時表示）＆即実行
 # ─────────────────────────────────────
-col1, col2, col3 = st.columns([1, 1, 1])
+# よくある質問：等間隔で横並びに配置
+cols = st.columns([1, 1, 1])
 
-with col1:
-    if st.button("現在空いている席は？"):
-        st.session_state.query = "現在空いている席は？"
-        st.session_state.run = True
+buttons = [
+    ("現在空いている席は？", "現在空いている席は？"),
+    ("なにが聞ける？", "なにが聞ける？"),
+    ("田中さんの５月利用状況", "田中さんの５月利用状況")
+]
 
-with col2:
-    if st.button("なにが聞ける？"):
-        st.session_state.query = "なにが聞ける？"
-        st.session_state.run = True
+for col, (label, query_text) in zip(cols, buttons):
+    with col:
+        if st.button(label):
+            st.session_state.query = query_text
+            st.session_state.run = True
 
-with col3:
-    if st.button("田中さんの５月利用状況"):
-        st.session_state.query = "田中さんの５月利用状況"
-        st.session_state.run = True
 # ─────────────────────────────────────
 # 質問入力欄（Enterまたは送信ボタンで実行）
 # ─────────────────────────────────────
