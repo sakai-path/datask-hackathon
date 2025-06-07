@@ -48,16 +48,11 @@ with col3:
         st.session_state.run = True
 
 # ─────────────────────────────────────
-# テキスト入力欄と送信ボタン（横並び）
+# テキスト入力欄と送信ボタン
 # ─────────────────────────────────────
-query = st.text_input("質問を入力してください", value=st.session_state.query, placeholder="例：なにが聞ける？")
-st.session_state.query = query
-
-btn_col1 = st.columns([1])
-with btn_col1:
-    if st.button("送信"):
-        st.session_state.run = True
-
+if st.button("送信"):
+    st.session_state.run = True
+    
 show_sql = st.checkbox("生成されたSQLを表示")
 sql_container = st.empty()
 
