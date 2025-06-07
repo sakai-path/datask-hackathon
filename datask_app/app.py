@@ -1,3 +1,4 @@
+
 # =============================================================================
 # app.py - Datask Streamlit アプリ（Function Calling + UI改善）
 # -----------------------------------------------------------------------------
@@ -32,7 +33,7 @@ if "run" not in st.session_state:
 # ─────────────────────────────────────
 # よくある質問（上部ボタン）
 # ─────────────────────────────────────
-col1, col2 = st.columns(3)
+col1, col2, col3 = st.columns(3)
 with col1:
     if st.button("座席マップを見せて"):
         st.session_state.query = "今の座席マップを見せて"
@@ -41,14 +42,24 @@ with col2:
     if st.button("田中さんの利用状況"):
         st.session_state.query = "田中さんの5月利用状況"
         st.session_state.run = True
+with col3:
+    if st.button("なにが聞けますか"):
+        st.session_state.query = "なにが聞けますか"
+        st.session_state.run = True
 
 # ─────────────────────────────────────
-# テキスト入力欄と下部ボタン
+# テキスト入力欄と送信ボタン（横並び）
 # ─────────────────────────────────────
 query = st.text_input("質問を入力してください", value=st.session_state.query, placeholder="例：なにが聞ける？")
 st.session_state.query = query
 
-if st.button("送信"):
+btn_col1, btn_col2 = st.columns([1, 3])
+with btn_col1:
+    if st.button("送信"):
+        st.session_state.run = True
+with btn_col2:
+    if st.button("なにが聞けますか？", key="btn_faq_inline"):
+        st.session_state.query = "なにが聞けますか"
         st.session_state.run = True
 
 show_sql = st.checkbox("生成されたSQLを表示")
@@ -118,4 +129,3 @@ with st.sidebar.expander("◆データベース参照（Seat / Employee / SeatLo
             file_name=f"{table}.csv",
             mime="text/csv"
         )
-
