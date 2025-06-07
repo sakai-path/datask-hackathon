@@ -1,36 +1,36 @@
 # =============================================================================
-# charts.py - 座席利用状況 & 社員の月別利用回数の棒グラフ表示
+# charts.py - Seat & Monthly Usage Graphs
 # -----------------------------------------------------------------------------
-# このモジュールでは、SeatLogを集計し、以下を matplotlib で描画します。
-# - 座席ごとの利用回数（draw_usage_bar_chart）
-# - 社員ごとの月別利用回数（draw_monthly_usage_chart）
-#
-# その他:
-# - OSに応じた日本語フォントの適用（文字化け対策）
+# - Seat usage counts (draw_usage_bar_chart)
+# - Monthly usage counts per employee (draw_monthly_usage_chart)
+# - JP font rendering support (for Windows/macOS/Linux)
 # =============================================================================
 
 import pandas as pd
 import sqlalchemy as sa
-import matplotlib  # ← フォント設定用に必要
+import matplotlib
 import matplotlib.pyplot as plt
 import streamlit as st
 import platform
+from matplotlib.font_manager import FontProperties
 
-# ▼ OSごとに日本語フォントを設定（文字化け対策）
+# ▼ Platform-based Japanese font configuration (only for Streamlit rendering safety)
 if platform.system() == "Windows":
+    jp_font = FontProperties(fname="C:/Windows/Fonts/YuGothR.ttc")
     matplotlib.rc("font", family="Yu Gothic")
 elif platform.system() == "Darwin":
+    jp_font = FontProperties(fname="/System/Library/Fonts/ヒラギノ丸ゴ ProN W4.ttc")
     matplotlib.rc("font", family="Hiragino Maru Gothic Pro")
 else:
-    matplotlib.rc("font", family="Noto Sans CJK JP")  # Linux向け代替
+    jp_font = FontProperties(fname="/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc")
+    matplotlib.rc("font", family="Noto Sans CJK JP")
 
-matplotlib.rcParams["axes.unicode_minus"] = False  # マイナス記号の文字化け防止
+matplotlib.rcParams["axes.unicode_minus"] = False
 
 # -------------------------------
-# 1. 座席ごとの利用回数
+# Seat usage counts
 # -------------------------------
 def get_seat_usage_counts(engine) -> pd.DataFrame:
-    """Seatごとの利用回数を取得"""
     sql = """
     SELECT S.Label, COUNT(*) AS UsageCount
     FROM SeatLog L
@@ -41,20 +41,18 @@ def get_seat_usage_counts(engine) -> pd.DataFrame:
     return pd.read_sql(sa.text(sql), engine)
 
 def draw_usage_bar_chart(df: pd.DataFrame):
-    """座席ごとの利用回数を棒グラフで描画"""
     fig, ax = plt.subplots(figsize=(10, 4))
     ax.bar(df["Label"], df["UsageCount"], color="skyblue", edgecolor="black")
-    ax.set_title("座席ごとの利用回数")
+    ax.set_title("Usage Count per Seat")
     ax.set_xlabel("Seat")
-    ax.set_ylabel("利用回数")
+    ax.set_ylabel("Usage Count")
     ax.set_xticklabels(df["Label"], rotation=45, ha="right")
     st.pyplot(fig)
 
 # -------------------------------
-# 2. 社員ごとの月別利用回数
+# Monthly usage per employee
 # -------------------------------
 def get_monthly_usage_by_employee(engine, emp_code: str) -> pd.DataFrame:
-    """指定された社員の月別利用回数を取得"""
     sql = """
     SELECT 
         FORMAT(CheckIn, 'yyyy-MM') AS Month,
@@ -69,20 +67,14 @@ def get_monthly_usage_by_employee(engine, emp_code: str) -> pd.DataFrame:
     return df
 
 def draw_monthly_usage_chart(df: pd.DataFrame, name: str = ""):
-    """月別利用回数を棒グラフで描画"""
     if df.empty:
-        st.warning("データがありません。")
+        st.warning("No data available.")
         return
     fig, ax = plt.subplots(figsize=(8, 4))
     ax.bar(df["Month"], df["UsageCount"], color="salmon", edgecolor="black")
-    
-    if jp_font:
-        plt.title(f"Monthly Usage - {name}", fontproperties=jp_font)
-    else:
-        plt.title(f"Monthly Usage - {name}")
-    
+    ax.set_title(f"Monthly Usage - {name}")
     ax.set_xlabel("Month")
-    ax.set_ylabel("Count")
+    ax.set_ylabel("Usage Count")
     ax.set_xticks(range(len(df["Month"])))
     ax.set_xticklabels(df["Month"], rotation=45, ha="right")
     st.pyplot(fig)
