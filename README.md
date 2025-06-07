@@ -133,7 +133,7 @@ Azure OpenAI（gpt-35-turbo）に Function Calling を組み合わせ、ユー�
 * Azure AI Search
 * 本プロジェクトは OpenAI の GPT-4o を活用して、設計・コード生成・資料作成を支援しています。
 
-* # 補足
+# 補足
 
-* 本アプリは 「 [Code; Without Barriers Hackathon 2025ハッカソン](https://cwbhackathon.com/) 」用に開発されたプロトタイプです。
-* 
+本アプリは 「 [Code; Without Barriers Hackathon 2025ハッカソン](https://cwbhackathon.com/) 」用に開発されたプロトタイプです。
+ 
