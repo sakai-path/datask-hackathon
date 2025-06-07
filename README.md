@@ -128,15 +128,9 @@ Azure OpenAI（gpt-35-turbo）に Function Calling を組み合わせ、ユー�
 | CheckIn | DATETIME2 | 着席時刻 |
 | CheckOut | DATETIME2（NULL可） | 離席時刻（まだ座っている場合はNULL） |
 
----
-
-## 🙏 クレジット
+# 🙏 クレジット
 
 * Azure OpenAI Service
 * Streamlit  
 * Azure AI Search
 * 本プロジェクトは OpenAI の GPT-4o を活用して、設計・コード生成・資料作成を支援しています。
-
----
-
-必要に応じてスクリーンショット (`docs/img/datask-demo.png`) を追加したり、リポジトリ URL やチーム名などを差し替えてください。英語版が必要な場合も対応可能です。
