@@ -54,27 +54,44 @@ Azure OpenAI（gpt-35-turbo）に Function Calling を組み合わせ、ユー�
 ## 📁 ディレクトリ構成
 
 ```
-datask_app/ ← アプリ本体（Streamlit 実行対象）
+📁 datask-hackathon-main/
 │
-├── 📄 main.py ← Streamlit アプリのエントリーポイント（UI構築）
+├── 📄 .gitignore
+├── 📄 LICENSE
+├── 📄 README.md
+├── 📄 requirements.txt
 │
-├── 📁 core/ ← データベース＆OpenAI連携などの中核機能
-│ ├── db.py ← Azure SQL接続＆クエリ実行、テーブル取得
-│ ├── openai_sql.py ← Azure OpenAI (Function Calling) によるSQL生成
-│ └── config.py ← Secretsや環境設定のラッパー関数
+├── 📁 .devcontainer/
+│   └── 📄 devcontainer.json
 │
-├── 📁 visual/ ← 可視化系（座席マップ、グラフなど）
-│ ├── seatmap.py ← 丸やレイアウトで座席を表示する機能
-│ └── usage_chart.py ← 社員別・座席別の利用回数などのグラフ表示
+├── 📁 datask_app/                  ← アプリケーション本体（Streamlit）
+│   ├── 📄 app.py                   ← Streamlit UIと処理フロー
+│   ├── 📄 config.py
+│   │
+│   ├── 📁 core/                    ← 中核機能（DB, OpenAI, 検索）
+│   │   ├── 📄 ai_search.py        ← Azure AI SearchによるFAQ検索
+│   │   ├── 📄 config.py           ← 設定ファイル読み込みなど
+│   │   ├── 📄 db.py               ← Azure SQL接続・クエリ実行
+│   │   ├── 📄 employee.py         ← 社員データ処理（名前からコード取得など）
+│   │   ├── 📄 openai_sql.py       ← Function Callingでタスク判定＋SQL生成
+│   │   └── 📄 schema.py           ← テーブル構造のヒント定義
+│   │
+│   ├── 📁 fonts/
+│   │   └── 📄 ipaexg.ttf          ← グラフ用フォントファイル
+│   │
+│   ├── 📁 testdata/
+│   │   └── 📄 seatlog_dummy.py    ← ダミーデータ登録用スクリプト
+│   │
+│   ├── 📁 tools/
+│   │   └── 📄 upload_faq.py       ← FAQデータのインポートツール
+│   │
+│   └── 📁 visual/                 ← 可視化（グラフ・座席マップなど）
+│       ├── 📄 charts.py          ← 利用状況グラフ描画
+│       └── 📄 seatmap.py         ← 現在の座席状態の可視化
 │
-├── 📁 testdata/ ← 一時的なダミーデータ登録用モジュール（初期のみ使用）
-│ └── seatlog_dummy.py ← SeatLog に対してテストデータを登録
-│
-├── 📁 .streamlit/ ← Streamlit設定ディレクトリ（Cloud Secrets）
-│ └── secrets.toml ← APIキーや接続情報の定義（ローカル実行時）
-│
-├── 📄 requirements.txt ← 必要なPythonパッケージ一覧
-└── 📄 packages.txt ← msodbcsqlなどのLinux依存パッケージ（Streamlit Cloud用）
+└── 📁 images/
+    ├── 📄 map.png                 ← サンプル座席マップ画像
+    └── 📄 system.png              ← システム構成図
 ```
 
 ## 🗂 データベース構成（3テーブル設計）
