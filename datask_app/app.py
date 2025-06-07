@@ -53,13 +53,9 @@ with col3:
 query = st.text_input("質問を入力してください", value=st.session_state.query, placeholder="例：なにが聞ける？")
 st.session_state.query = query
 
-btn_col1, btn_col2 = st.columns([1, 3])
+btn_col1 = st.columns([1])
 with btn_col1:
     if st.button("送信"):
-        st.session_state.run = True
-with btn_col2:
-    if st.button("なにが聞けますか？", key="btn_faq_inline"):
-        st.session_state.query = "なにが聞けますか"
         st.session_state.run = True
 
 show_sql = st.checkbox("生成されたSQLを表示")
