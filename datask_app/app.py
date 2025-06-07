@@ -32,16 +32,39 @@ if "run" not in st.session_state:
 # ─────────────────────────────────────
 # よくある質問（常時表示）＆即実行
 # ─────────────────────────────────────
-col1, col2, col3 = st.columns(3)
-if col1.button("座席マップを見せて"):
-    st.session_state.query = "座席マップを見せて"
-    st.session_state.run = True
-if col2.button("なにが聞ける？"):
-    st.session_state.query = "なにが聞ける？"
-    st.session_state.run = True
-if col3.button("田中さんの５月利用状況"):
-    st.session_state.query = "田中さんの５月利用状況"
-    st.session_state.run = True
+# HTML + CSS で横並びの左寄せボタン
+button_style = """
+<style>
+.button-container {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+.button-container form {
+    margin: 0;
+}
+</style>
+"""
+
+st.markdown(button_style, unsafe_allow_html=True)
+
+# 各ボタンの表示（streamlit の form にして即実行）
+with st.container():
+    st.markdown('<div class="button-container">', unsafe_allow_html=True)
+
+    if st.button("現在空いている席は？", key="q1"):
+        st.session_state.query = "現在空いている席は？"
+        st.session_state.run = True
+
+    if st.button("なにが聞ける？", key="q2"):
+        st.session_state.query = "なにが聞ける？"
+        st.session_state.run = True
+
+    if st.button("田中さんの５月利用状況", key="q3"):
+        st.session_state.query = "田中さんの５月利用状況"
+        st.session_state.run = True
+
+    st.markdown('</div>', unsafe_allow_html=True)
 
 # ─────────────────────────────────────
 # 質問入力欄（Enterまたは送信ボタンで実行）
