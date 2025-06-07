@@ -50,18 +50,15 @@ with col3:
 # ─────────────────────────────────────
 # テキスト入力欄と送信ボタン（横並び）
 # ─────────────────────────────────────
+# 質問入力欄（上部）
 query = st.text_input("質問を入力してください", value=st.session_state.query, placeholder="例：なにが聞ける？")
 st.session_state.query = query
 
-btn_col1, btn_col2 = st.columns([1, 3])
-with btn_col1:
-    if st.button("送信"):
-        st.session_state.run = True
-with btn_col2:
-    if st.button("なにが聞けますか？", key="btn_faq_inline"):
-        st.session_state.query = "なにが聞けますか"
-        st.session_state.run = True
+# 送信ボタンのみ（横並びの不要なcol分割も削除）
+if st.button("送信"):
+    st.session_state.run = True
 
+# SQL表示チェックと表示エリア
 show_sql = st.checkbox("生成されたSQLを表示")
 sql_container = st.empty()
 
