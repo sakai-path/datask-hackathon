@@ -34,8 +34,8 @@ if "run" not in st.session_state:
 # ─────────────────────────────────────
 st.markdown("#### 💡 よくある質問（クリックで実行）")
 col1, col2, col3 = st.columns(3)
-if col1.button("現在空いている席は？"):
-    st.session_state.query = "現在空いている席は？"
+if col1.button("座席マップを見せて"):
+    st.session_state.query = "座席マップを見せて"
     st.session_state.run = True
 if col2.button("なにが聞ける？"):
     st.session_state.query = "なにが聞ける？"
