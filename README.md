@@ -2,8 +2,6 @@
 
 おしゃべりデータ(Datask) は、自然言語で座席の利用状況を問い合わせできるStreamlitアプリケーションです。
 
-本アプリは 「 [Code; Without Barriers Hackathon 2025ハッカソン](https://cwbhackathon.com/) 」用に開発されたプロトタイプです。
-
 <img src="./images/map.png" alt="スクリーンショット" width="500">
 
 > 「今の座席マップを見せて」 ── そんな会話だけで、AI が  
@@ -128,9 +126,14 @@ Azure OpenAI（gpt-35-turbo）に Function Calling を組み合わせ、ユー�
 | CheckIn | DATETIME2 | 着席時刻 |
 | CheckOut | DATETIME2（NULL可） | 離席時刻（まだ座っている場合はNULL） |
 
-#  クレジット
+# クレジット
 
 * Azure OpenAI Service
 * Streamlit  
 * Azure AI Search
 * 本プロジェクトは OpenAI の GPT-4o を活用して、設計・コード生成・資料作成を支援しています。
+
+* # 補足
+
+* 本アプリは 「 [Code; Without Barriers Hackathon 2025ハッカソン](https://cwbhackathon.com/) 」用に開発されたプロトタイプです。
+* 
