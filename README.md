@@ -1,13 +1,47 @@
 # おしゃべりデータ（Datask） 
 
-**Datask** は「自然言語で Azure SQL を検索・可視化できる」 Streamlit 製アプリです。
+おしゃべりデータ(Datask) は、自然言語で座席の利用状況を問い合わせできるStreamlitアプリケーションです。
 
-> *"田中さんの月別利用状況をグラフで見せて"*──そんな会話だけで、AI が  
+<img src="./images/map.png" alt="スクリーンショット" width="500">
+
+> 「今の座席マップを見せて」 ── そんな会話だけで、AI が  
 > ① 日本語 → ② T-SQL 変換 → ③ DB クエリ → ④ 表・グラフ表示 まで自動で行います。
 
----
+# 技術スタック
 
-## ✨ 特長
+| レイヤ | 採用技術 |
+|-----------------|----------|
+| フロント | **Streamlit** (Python) |
+| 言語モデル | **Azure OpenAI** GPT-4 |
+| DB | **Azure SQL** (Managed) |
+| 検索補助 (RAG) | **Azure AI Search** |
+| シークレット | Streamlit Cloud Secrets |
+
+※ 本プロジェクトの設計・実装には **ChatGPT (GPT-4o)** を開発補助として活用しています。
+
+# 構成要素
+
+<img src="./images/system.png" alt="スクリーンショット" >
+
+| コンポーネント | 役割 |
+|---|---|
+| **User** | 質問（自然言語）を入力します |
+| **Streamlit** | UI描画と処理フローの制御を行うアプリ本体です。入力をAzure OpenAIやDBに橋渡しします |
+| **Azure OpenAI (Function Calling)** | 自然言語の質問を以下の4分類に自動判定します<br>① SQL生成<br>② グラフ描画<br>③ 座席マップ表示<br>④ 雑談応答 |
+| **Azure SQL Database** | 社員・座席・利用ログなどの構造化データを格納し、AIによって生成されたSQLで検索します |
+| **Azure AI Search** | 特定キーワードに対してFAQ形式の補足検索や補助知識ベースとして動作します（※未使用でも可） |
+
+### Function Calling による自動タスク分岐
+
+Azure OpenAI（gpt-35-turbo）に Function Calling を組み合わせ、ユーザーの質問文を以下の4種に分類して適切な処理を行います。
+
+* **SQL**：例「北フロアの空席を一覧で出して」 → SQL生成＋DB検索
+* **グラフ**：例「田中さんの月別利用状況」 → 社員別利用ログを集計・描画
+* **マップ**：例「今空いてる席は？」 → 現在の空席状況をマップ描画
+* **雑談**：例「こんにちは」「このアプリでできることは？」など → チャット応答で返答
+
+
+# 特長
 
 | 機能 | 説明 |
 |------|------|
@@ -16,29 +50,6 @@
 | FAQ × AI Search | よくある質問を Azure AI Search にインデックス。類似質問には即 FAQ で回答 |
 | スキーマ安全性 | INSERT/UPDATE/DELETE を禁止し、読み取り専用クエリだけ生成 |
 | Streamlit UI | ワンページ＆角丸デザインでシンプル・フレンドリー |
-
----
-
-## 🗺️ アーキテクチャ概要
-
-＊＊
-
----
-
-## 🛠 技術スタック
-
-| レイヤ | 採用技術 |
-|-----------------|----------|
-| フロント | **Streamlit** (Python) |
-| 言語モデル | **Azure OpenAI** GPT-4 / GPT-4o |
-| DB | **Azure SQL** (Managed) |
-| 検索補助 (RAG) | **Azure AI Search** |
-| シークレット | Streamlit Cloud Secrets |
-
-※ 本プロジェクトの設計・実装には **ChatGPT (GPT-4o)** を開発補助として活用しています。
-
----
-
 
 ## 📁 ディレクトリ構成
 
@@ -65,8 +76,6 @@ datask_app/ ← アプリ本体（Streamlit 実行対象）
 ├── 📄 requirements.txt ← 必要なPythonパッケージ一覧
 └── 📄 packages.txt ← msodbcsqlなどのLinux依存パッケージ（Streamlit Cloud用）
 ```
-
----
 
 ## 🗂 データベース構成（3テーブル設計）
 
