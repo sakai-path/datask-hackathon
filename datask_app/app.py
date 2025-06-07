@@ -52,19 +52,12 @@ with col3:
 def on_enter():
     st.session_state.run = True
 
-query = st.text_input(
-    "質問を入力してください",
-    value=st.session_state.query,
-    placeholder="例：なにが聞ける？",
-    key="query_input",
-    on_change=on_enter
-)
-st.session_state.query = st.session_state.query_input
+query = st.text_input("質問を入力してください", value=st.session_state.query, placeholder="例：なにが聞ける？")
+st.session_state.query = query
 
-# 送信ボタン（Enterと併用可）
 if st.button("送信"):
     st.session_state.run = True
-
+    
 # SQL表示チェックと表示エリア
 show_sql = st.checkbox("生成されたSQLを表示")
 sql_container = st.empty()
