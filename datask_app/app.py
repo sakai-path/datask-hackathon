@@ -36,9 +36,9 @@ if "run" not in st.session_state:
 cols = st.columns([1, 1, 1])
 
 buttons = [
-    ("座席マップを見せて", "座席マップを見せて”),
+    ("現在空いている席は？", "現在空いている席は？"),
     ("なにが聞ける？", "なにが聞ける？"),
-    ("部署別利用状況", "部署別利用状況")
+    ("田中さんの５月利用状況", "田中さんの５月利用状況")
 ]
 
 for col, (label, query_text) in zip(cols, buttons):
