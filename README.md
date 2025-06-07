@@ -31,7 +31,7 @@
 | **Azure SQL Database** | 社員・座席・利用ログなどの構造化データを格納し、AIによって生成されたSQLで検索します |
 | **Azure AI Search** | 特定キーワードに対してFAQ形式の補足検索や補助知識ベースとして動作します（※未使用でも可） |
 
-### Function Calling による自動タスク分岐
+## Function Calling による自動タスク分岐
 
 Azure OpenAI（gpt-35-turbo）に Function Calling を組み合わせ、ユーザーの質問文を以下の4種に分類して適切な処理を行います。
 
@@ -51,7 +51,7 @@ Azure OpenAI（gpt-35-turbo）に Function Calling を組み合わせ、ユー�
 | スキーマ安全性 | INSERT/UPDATE/DELETE を禁止し、読み取り専用クエリだけ生成 |
 | Streamlit UI | ワンページ＆角丸デザインでシンプル・フレンドリー |
 
-## 📁 ディレクトリ構成
+# ディレクトリ構成
 
 ```
 📁 datask-hackathon-main/
@@ -93,8 +93,6 @@ Azure OpenAI（gpt-35-turbo）に Function Calling を組み合わせ、ユー�
     ├── 📄 map.png                 ← サンプル座席マップ画像
     └── 📄 system.png              ← システム構成図
 ```
-
-## 🗂 データベース構成（3テーブル設計）
 
 # 座席管理システム テーブル定義
 
