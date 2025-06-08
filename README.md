@@ -4,7 +4,7 @@
 
 <img src="./images/map.png" alt="スクリーンショット" width="500">
 
-[デモ動画](https://www.docswell.com/s/6723365/vR562XJ-datask-hackathon2025)
+[デモ動画](https://www.docswell.com/s/sakai_path/vVN3R9J-datask-hackathon2025)
 
 > 「今の座席マップを見せて」 ── そんな会話だけで、AI が  
 > ① 日本語 → ② T-SQL 変換 → ③ DB クエリ → ④ 表・グラフ表示 まで自動で行います。
