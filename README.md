@@ -35,7 +35,7 @@
 
 ## Function Calling による自動タスク分岐
 
-Azure OpenAI（gpt-35-turbo）に Function Calling を組み合わせ、ユーザーの質問文を以下の4種に分類して適切な処理を行います。
+Azure OpenAI（GPT-4）に Function Calling を組み合わせ、ユーザーの質問文を以下の4種に分類して適切な処理を行います。
 
 * **SQL**：例「北フロアの空席を一覧で出して」 → SQL生成＋DB検索
 * **グラフ**：例「田中さんの月別利用状況」 → 社員別利用ログを集計・描画
